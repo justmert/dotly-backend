@@ -1,0 +1,11 @@
+requests==2.31.0
+python-dotenv==0.16.0
+fastapi==0.89.1
+pydantic==1.10.4
+uvicorn==0.20.0
+python-jose[cryptography]==3.3.0
+passlib==1.7.0
+bcrypt==4.0.1
+python-multipart==0.0.6
+typing-extensions==4.3.0
+pyfiglet==0.8.post1

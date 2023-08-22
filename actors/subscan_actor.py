@@ -20,7 +20,7 @@ class SubscanActor:
         if not self.session:
             self.session = requests.Session()
 
-    def subscan_rest_make_request(self, url, variables=None, max_page_fetch=float("inf")):
+    def subscan_rest_make_request(self, url, variables=None, data=None, max_page_fetch=float("inf")):
         url = f"{self.subscan_rest_endpoint}{url}"
         logger.info(f". [=] Fetching data from REST API from {url}")
 
@@ -29,7 +29,7 @@ class SubscanActor:
         while url and (current_fetch_count < max_page_fetch):
             logger.info(f". page {current_fetch_count + 1}/{max_page_fetch} of {url}")
             self.session.headers.update(self.subscan_rest_headers)
-            response = self.session.get(url, params=variables)
+            response = self.session.post(url, params=variables, json = data )
 
             if response.status_code == 200:
                 json_response = response.json()

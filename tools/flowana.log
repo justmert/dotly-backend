@@ -1,9 +1,9 @@
-2023-08-22 22:54:48,297 - _default.py - Checking /Users/mert/Projects/dotly-backend/dotly-admin-sdk.json for explicit credentials as part of auth process...
-2023-08-22 22:54:48,300 - _default.py - Checking /Users/mert/Projects/dotly-backend/dotly-admin-sdk.json for explicit credentials as part of auth process...
-2023-08-22 22:54:48,428 - requests.py - Making request: POST https://oauth2.googleapis.com/token
-2023-08-22 22:54:48,447 - connectionpool.py - Starting new HTTPS connection (1): oauth2.googleapis.com:443
-2023-08-22 22:54:48,602 - connectionpool.py - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
-2023-08-22 22:54:48,925 - __init__.py - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
-2023-08-22 22:54:48,926 - __init__.py - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
-2023-08-22 22:54:48,926 - __init__.py - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
-2023-08-22 22:54:49,111 - registry.py - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>
+2023-08-26 15:20:55,626 - _default.py - Checking /Users/mert/Projects/dotly-backend/dotly-admin-sdk.json for explicit credentials as part of auth process...
+2023-08-26 15:20:55,629 - _default.py - Checking /Users/mert/Projects/dotly-backend/dotly-admin-sdk.json for explicit credentials as part of auth process...
+2023-08-26 15:20:55,763 - requests.py - Making request: POST https://oauth2.googleapis.com/token
+2023-08-26 15:20:55,782 - connectionpool.py - Starting new HTTPS connection (1): oauth2.googleapis.com:443
+2023-08-26 15:20:55,946 - connectionpool.py - https://oauth2.googleapis.com:443 "POST /token HTTP/1.1" 200 None
+2023-08-26 15:20:56,316 - __init__.py - loaded lazy attr 'SafeConfigParser': <class 'configparser.ConfigParser'>
+2023-08-26 15:20:56,317 - __init__.py - loaded lazy attr 'NativeStringIO': <class '_io.StringIO'>
+2023-08-26 15:20:56,317 - __init__.py - loaded lazy attr 'BytesIO': <class '_io.BytesIO'>
+2023-08-26 15:20:56,417 - registry.py - registered 'bcrypt' handler: <class 'passlib.handlers.bcrypt.bcrypt'>

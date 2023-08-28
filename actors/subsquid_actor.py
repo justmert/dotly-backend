@@ -1,7 +1,9 @@
 import requests
 import os
 import time
-from time import sleep
+from time import (
+    sleep,
+)
 import logging
 import tools.log_config as log_config
 
@@ -10,10 +12,15 @@ logger = logging.getLogger(__name__)
 
 class SubSquidActor:
     @property
-    def get_session(self):
+    def get_session(
+        self,
+    ):
         return self.session
 
-    def __init__(self, session=None):
+    def __init__(
+        self,
+        session=None,
+    ):
         self.subsquid_explorer_endpoint = "https://squid.subsquid.io/gs-explorer-polkadot/graphql"
         self.subsquid_stats_endpoint = "https://squid.subsquid.io/gs-stats-polkadot/graphql"
         self.subsquid_main_endpoint = "https://squid.subsquid.io/gs-main-polkadot/graphql"
@@ -25,18 +32,32 @@ class SubSquidActor:
         if not self.session:
             self.session = requests.Session()
 
-    def _subscan_graphql_make_query(self, endpoint, query, variables=None):
+    def _subscan_graphql_make_query(
+        self,
+        endpoint,
+        query,
+        variables=None,
+    ):
         logger.info(f". [=] Fetching data from Graphql API from {endpoint}")
         self.session.headers.update(self.subsquid_graphql_headers)
         response = self.session.post(
             endpoint,
-            json={"query": query, "variables": variables},
+            json={
+                "query": query,
+                "variables": variables,
+            },
         )
 
-        if response.status_code in (301, 302):
+        if response.status_code in (
+            301,
+            302,
+        ):
             response = self.session.post(
                 response.headers["location"],
-                json={"query": query, "variables": variables},
+                json={
+                    "query": query,
+                    "variables": variables,
+                },
             )
 
         if response.status_code != 200:
@@ -49,15 +70,35 @@ class SubSquidActor:
 
         return response.json()
 
-    def subscan_explorer_graphql(self, _query, variables=None):
+    def subscan_explorer_graphql(
+        self,
+        _query,
+        variables=None,
+    ):
         return self._subscan_graphql_make_query(
-            endpoint=self.subsquid_exporer_endpoint, query=_query, variables=variables
+            endpoint=self.subsquid_explorer_endpoint,
+            query=_query,
+            variables=variables,
         )
 
-    def subscan_stats_graphql(self, _query, variables=None):
+    def subscan_stats_graphql(
+        self,
+        _query,
+        variables=None,
+    ):
         return self._subscan_graphql_make_query(
-            endpoint=self.subsquid_stats_endpoint, query=_query, variables=variables
+            endpoint=self.subsquid_stats_endpoint,
+            query=_query,
+            variables=variables,
         )
 
-    def subscan_main_graphql(self, _query, variables=None):
-        return self._subscan_graphql_make_query(endpoint=self.subsquid_main_endpoint, query=_query, variables=variables)
+    def subscan_main_graphql(
+        self,
+        _query,
+        variables=None,
+    ):
+        return self._subscan_graphql_make_query(
+            endpoint=self.subsquid_main_endpoint,
+            query=_query,
+            variables=variables,
+        )

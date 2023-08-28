@@ -1,6 +1,13 @@
-from fastapi import APIRouter
-from fastapi import Path, HTTPException
-from ..api import db
+from fastapi import (
+    APIRouter,
+)
+from fastapi import (
+    Path,
+    HTTPException,
+)
+from ..api import (
+    db,
+)
 
 router = APIRouter()
 

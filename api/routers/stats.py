@@ -1,11 +1,23 @@
-from fastapi import APIRouter
-from fastapi import Path, HTTPException, Query
-from ..api import db
-from widgets.stats import Stats, StatsType
+from fastapi import (
+    APIRouter,
+)
+from fastapi import (
+    Path,
+    HTTPException,
+    Query,
+)
+from ..api import (
+    db,
+)
+from widgets.stats import (
+    Stats,
+    StatsType,
+)
 
 router = APIRouter()
 
 STATS_CONTEXT = Stats()
+
 
 @router.get(
     "/transfer-relationship",
@@ -25,7 +37,13 @@ STATS_CONTEXT = Stats()
         },
     },
 )
-def transaction_relationship(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def transaction_relationship(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.transfer_relationship(public_key=public_key)
 
 
@@ -47,9 +65,14 @@ def transaction_relationship(public_key: str = Query(..., title="Public Key", de
         },
     },
 )
-def recent_transfers(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def recent_transfers(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.recent_transfers(public_key=public_key)
-
 
 
 @router.get(
@@ -70,9 +93,14 @@ def recent_transfers(public_key: str = Query(..., title="Public Key", descriptio
         },
     },
 )
-def top_transfers(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def top_transfers(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.top_transfers(public_key=public_key)
-
 
 
 @router.get(
@@ -93,9 +121,14 @@ def top_transfers(public_key: str = Query(..., title="Public Key", description="
         },
     },
 )
-def transaction_relationship(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def transaction_relationship(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.transfer_direction(public_key=public_key)
-
 
 
 @router.get(
@@ -116,7 +149,13 @@ def transaction_relationship(public_key: str = Query(..., title="Public Key", de
         },
     },
 )
-def transaction_relationship(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def transaction_relationship(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.total_transfers(public_key=public_key)
 
 
@@ -138,9 +177,14 @@ def transaction_relationship(public_key: str = Query(..., title="Public Key", de
         },
     },
 )
-def transfer_success_rate(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def transfer_success_rate(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.transfer_success_rate(public_key=public_key)
-
 
 
 @router.get(
@@ -161,9 +205,14 @@ def transfer_success_rate(public_key: str = Query(..., title="Public Key", descr
         },
     },
 )
-def total_rewards(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def total_rewards(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.total_rewards(public_key=public_key)
-
 
 
 @router.get(
@@ -184,9 +233,14 @@ def total_rewards(public_key: str = Query(..., title="Public Key", description="
         },
     },
 )
-def recent_rewards(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def recent_rewards(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.recent_rewards(public_key=public_key)
-
 
 
 @router.get(
@@ -207,7 +261,13 @@ def recent_rewards(public_key: str = Query(..., title="Public Key", description=
         },
     },
 )
-def reward_history(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def reward_history(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.reward_history(public_key=public_key)
 
 
@@ -229,5 +289,11 @@ def reward_history(public_key: str = Query(..., title="Public Key", description=
         },
     },
 )
-def balance_history(public_key: str = Query(..., title="Public Key", description="Public Key of the account to query")):
+def balance_history(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
     return STATS_CONTEXT.balance_history(public_key=public_key)

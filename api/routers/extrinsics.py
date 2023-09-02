@@ -103,19 +103,19 @@ def extrinsics_activity(
     df = pd.DataFrame(data)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
 
-    if interval == ActivityInterval.DAY:
+    if interval_enum == ActivityInterval.DAY:
         df["grouped_date"] = df["timestamp"].dt.date
-    elif interval == ActivityInterval.WEEK:
+    elif interval_enum == ActivityInterval.WEEK:
         df["grouped_date"] = df["timestamp"].dt.to_period("W").apply(lambda r: r.start_time.date())
-    elif interval == ActivityInterval.MONTH:
+    elif interval_enum == ActivityInterval.MONTH:
         df["grouped_date"] = df["timestamp"].dt.to_period("M").apply(lambda r: r.start_time.date())
-    elif interval == ActivityInterval.YEAR:
+    elif interval_enum == ActivityInterval.YEAR:
         df["grouped_date"] = df["timestamp"].dt.to_period("Y").apply(lambda r: r.start_time.date())
 
     grouped_data = df.groupby("grouped_date").size().reset_index(name="counts")
 
     echarts_data = {
-        "title": {"text": f"Activity for {interval.value}"},
+        "title": {"text": f"Activity for {interval_enum.value}"},
         "xAxis": {
             "type": "category",
             "data": grouped_data["grouped_date"].tolist(),

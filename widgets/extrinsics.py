@@ -172,7 +172,8 @@ class Extrinsics:
                 key=lambda x: x[1]["total"],
                 reverse=True,
             )[:5]
-            top_pallets_counts = {pallet[0]: pallet[1]["total"] for pallet in top_pallets}
+            top_pallets_counts = {
+                pallet[0]: pallet[1]["total"] for pallet in top_pallets}
 
             # Getting the top calls for each pallet
             top_calls_counts = {}

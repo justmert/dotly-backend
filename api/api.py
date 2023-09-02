@@ -145,6 +145,10 @@ tags_metadata = [
         "name": "Extrinsics",
         "description": "Extrinsics related endpoints for account",
     },
+     {
+        "name": "Rewards",
+        "description": "Rewards related endpoints for account",
+    },
     {
         "name": "Badges",
         "description": "Badges related endpoints for account",
@@ -158,6 +162,7 @@ from api.routers import (
     overview,
     stats,
     extrinsics,
+    rewards,
     badges,
 )
 
@@ -177,9 +182,14 @@ app.include_router(
     tags=[tags_metadata[3]["name"]],
 )
 app.include_router(
+    rewards.router,
+    prefix="/rewards",
+    tags=[tags_metadata[4]["name"]],
+)
+app.include_router(
     badges.router,
     prefix="/badges",
-    tags=[tags_metadata[4]["name"]],
+    tags=[tags_metadata[5]["name"]],
 )
 
 

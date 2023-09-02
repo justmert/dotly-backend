@@ -76,7 +76,7 @@ def recent_transfers(
 
 
 @router.get(
-    "/top-transfers",
+    "/top-transfers-by-count",
     # dependencies=[Depends(get_current_user)],
     responses={
         200: {
@@ -93,14 +93,14 @@ def recent_transfers(
         },
     },
 )
-def top_transfers(
+def top_transfers_by_count(
     public_key: str = Query(
         ...,
         title="Public Key",
         description="Public Key of the account to query",
     )
 ):
-    return STATS_CONTEXT.top_transfers(public_key=public_key)
+    return STATS_CONTEXT.top_transfers_by_count(public_key=public_key)
 
 
 @router.get(
@@ -187,88 +187,7 @@ def transfer_success_rate(
     return STATS_CONTEXT.transfer_success_rate(public_key=public_key)
 
 
-@router.get(
-    "/total-rewards",
-    # dependencies=[Depends(get_current_user)],
-    responses={
-        200: {
-            "description": "Total Rewards",
-            "content": {"application/json": {"example": None}},
-        },
-        204: {
-            "description": "No content found.",
-            "content": {"application/json": {"example": None}},
-        },
-        404: {
-            "description": "Not found",
-            "content": {"application/json": {"example": {"error": "Error description"}}},
-        },
-    },
-)
-def total_rewards(
-    public_key: str = Query(
-        ...,
-        title="Public Key",
-        description="Public Key of the account to query",
-    )
-):
-    return STATS_CONTEXT.total_rewards(public_key=public_key)
 
-
-@router.get(
-    "/recent-rewards",
-    # dependencies=[Depends(get_current_user)],
-    responses={
-        200: {
-            "description": "Recent Rewards",
-            "content": {"application/json": {"example": None}},
-        },
-        204: {
-            "description": "No content found.",
-            "content": {"application/json": {"example": None}},
-        },
-        404: {
-            "description": "Not found",
-            "content": {"application/json": {"example": {"error": "Error description"}}},
-        },
-    },
-)
-def recent_rewards(
-    public_key: str = Query(
-        ...,
-        title="Public Key",
-        description="Public Key of the account to query",
-    )
-):
-    return STATS_CONTEXT.recent_rewards(public_key=public_key)
-
-
-@router.get(
-    "/reward-history",
-    # dependencies=[Depends(get_current_user)],
-    responses={
-        200: {
-            "description": "Reward History",
-            "content": {"application/json": {"example": None}},
-        },
-        204: {
-            "description": "No content found.",
-            "content": {"application/json": {"example": None}},
-        },
-        404: {
-            "description": "Not found",
-            "content": {"application/json": {"example": {"error": "Error description"}}},
-        },
-    },
-)
-def reward_history(
-    public_key: str = Query(
-        ...,
-        title="Public Key",
-        description="Public Key of the account to query",
-    )
-):
-    return STATS_CONTEXT.reward_history(public_key=public_key)
 
 
 @router.get(

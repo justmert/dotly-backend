@@ -23,19 +23,16 @@ from datetime import (
 from dateutil.relativedelta import (
     relativedelta,
 )
+from tools.helpers import dot_string_to_float
 
 
 class StatsType(Enum):
-    TOP_TRANSFERS = "TOP_TRANSFERS"
+    TOP_TRANSFERS_BY_COUNT = "TOP_TRANSFERS_BY_COUNT"
     RECENT_TRANSFERS = "RECENT_TRANSFERS"
     TRANSFER_RELATIONSHIP = "TRANSFER_RELATIONSHIP"
     TRANSFER_DIRECTION = "TRANSFER_DIRECTION"
     TOTAL_TRANSFERS = "TOTAL_TRANSFERS"
     TRANSFER_SUCCESS_RATE = "TRANSFER_SUCCESS_RATE"
-    RECENT_REWARDS = "RECENT_REWARDS"
-    REWARD_HISTORY = "REWARD_HISTORY"
-    TOTAL_REWARDS = "TOTAL_REWARDS"
-    BALANCE_HISTORY = "BALANCE_HISTORY"
 
 
 class Stats:
@@ -97,13 +94,22 @@ class Stats:
             StatsType.RECENT_TRANSFERS,
         )
 
-    def top_transfers(
+    def transfer_success_rate(
         self,
         public_key,
     ):
         return self._transfers(
             public_key,
-            StatsType.TOP_TRANSFERS,
+            StatsType.TRANSFER_SUCCESS_RATE,
+        )
+
+    def top_transfers_by_count(
+        self,
+        public_key,
+    ):
+        return self._transfers(
+            public_key,
+            StatsType.TOP_TRANSFERS_BY_COUNT,
         )
 
     def transfer_direction(
@@ -188,9 +194,8 @@ class Stats:
                 }
 
                 query = """
-                    query ($public_key: String!, $account_limit:Int!, $account_offset:Int!, $transfer_limit:Int!, $transfer_offset:Int!) {
-                    accounts(where: {id_eq: $public_key}, limit: $account_limit, offset: $account_offset) {
-                        transfers(limit: $transfer_limit, offset: $transfer_offset) {
+                    query ($public_key: String!, $transfer_limit:Int!, $transfer_offset:Int!) {
+                        transfers(limit: $transfer_limit, offset: $transfer_offset, where: {account: {publicKey_eq: $public_key}}) {
                         id
                         transfer {
                             blockNumber
@@ -215,30 +220,24 @@ class Stats:
                     query,
                     variables,
                 )
-                account_info = result.get(
-                    "data",
-                    {},
-                ).get(
-                    "accounts",
-                    [None],
-                )[0]
-                if account_info is not None:
-                    transfers = account_info.get(
-                        "transfers",
-                        [],
-                    )
-                    if not transfers:
-                        break
+                transfers = result.get("data", {}).get(
+                    "transfers",
+                    [],
+                )
+                if not transfers:
+                    break
 
-                    all_transfers.extend(transfers)
+                all_transfers.extend(transfers)
 
-                    pages_fetched += 1
-                    transfer_offset += transfer_limit
+                pages_fetched += 1
+                transfer_offset += transfer_limit
 
             # Extracting the latest 10 transfers
             latest_10_transfers = []
             if len(all_transfers) > 10:
                 latest_10_transfers = all_transfers[:10]
+            else:
+                latest_10_transfers = all_transfers
 
             # Saving the latest 10 transfers to the cache
             self._save_to_cache(
@@ -282,7 +281,7 @@ class Stats:
             # Saving the top 5 senders and receivers to the cache
             self._save_to_cache(
                 public_key,
-                StatsType.TOP_TRANSFERS,
+                StatsType.TOP_TRANSFERS_BY_COUNT,
                 {
                     "senders": top_5_senders_by_count,
                     "receivers": top_5_receivers_by_count,
@@ -297,11 +296,13 @@ class Stats:
             for transfer in all_transfers:
                 if transfer["direction"] == "To":
                     receiver = transfer["transfer"]["to"]["publicKey"]
-                    receiver_amounts[receiver] += int(transfer["transfer"]["amount"])
+                    receiver_amounts[receiver] += int(
+                        transfer["transfer"]["amount"])
 
                 elif transfer["direction"] == "From":
                     sender = transfer["transfer"]["from"]["publicKey"]
-                    sender_amounts[sender] += int(transfer["transfer"]["amount"])
+                    sender_amounts[sender] += int(
+                        transfer["transfer"]["amount"])
 
             # Sort and extract top 5 senders and receivers by amount
             top_5_senders_by_amount = sorted(
@@ -348,9 +349,12 @@ class Stats:
 
             # -----------------------------------------------------------
 
-            success_count = sum(1 for transfer in all_transfers if transfer["transfer"]["success"])
+            success_count = sum(
+                1 for transfer in all_transfers if transfer["transfer"]["success"])
             failed_count = len(all_transfers) - success_count
-            success_rate = success_count / len(all_transfers) * 100 if all_transfers else 0  # handle division by zero
+            success_rate = success_count / \
+                len(all_transfers) * \
+                100 if all_transfers else 0  # handle division by zero
 
             # Saving the transfer success rate to the cache
             transfer_success_rate = {
@@ -373,10 +377,12 @@ class Stats:
 
             # Create a Counter for incoming and outgoing transfers
             incoming_counter = Counter(
-                [transfer["transfer"]["timestamp"] for transfer in all_transfers if transfer["direction"] == "To"]
+                [transfer["transfer"]["timestamp"]
+                    for transfer in all_transfers if transfer["direction"] == "To"]
             )
             outgoing_counter = Counter(
-                [transfer["transfer"]["timestamp"] for transfer in all_transfers if transfer["direction"] == "From"]
+                [transfer["transfer"]["timestamp"]
+                    for transfer in all_transfers if transfer["direction"] == "From"]
             )
 
             # Aggregate data over unique timestamps
@@ -425,3 +431,5 @@ class Stats:
             )
 
         return self.cache[public_key][stats_type]
+
+  

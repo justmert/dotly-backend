@@ -9,10 +9,7 @@ from fastapi import (
 from ..api import (
     db,
 )
-from widgets.extrinsics import (
-    Extrinsics,
-    ExtrinsicsType,
-)
+
 from enum import (
     Enum,
 )
@@ -34,9 +31,9 @@ from datetime import (
     datetime,
     timedelta,
 )
+from api.api import EXTRINSICS_CONTEXT, ExtrinsicsType
 
 
-EXTRINSICS_CONTEXT = Extrinsics()
 router = APIRouter()
 
 
@@ -84,8 +81,6 @@ def extrinsics_activity(
         public_key=public_key,
         stats_type=ExtrinsicsType.EXTRINSICS,
     )
-    # implement here
-
     if not data:
         raise HTTPException(
             status_code=204,
@@ -101,29 +96,39 @@ def extrinsics_activity(
         )
 
     df = pd.DataFrame(data)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.date
+    df.set_index(pd.DatetimeIndex(df["timestamp"]), inplace=True)
 
-    if interval_enum == ActivityInterval.DAY:
-        df["grouped_date"] = df["timestamp"].dt.date
-    elif interval_enum == ActivityInterval.WEEK:
-        df["grouped_date"] = df["timestamp"].dt.to_period("W").apply(lambda r: r.start_time.date())
-    elif interval_enum == ActivityInterval.MONTH:
-        df["grouped_date"] = df["timestamp"].dt.to_period("M").apply(lambda r: r.start_time.date())
-    elif interval_enum == ActivityInterval.YEAR:
-        df["grouped_date"] = df["timestamp"].dt.to_period("Y").apply(lambda r: r.start_time.date())
+    # Determine resampling frequency
+    freq_map = {
+        ActivityInterval.DAY: "D",
+        ActivityInterval.WEEK: "W-MON",
+        ActivityInterval.MONTH: "M",
+        ActivityInterval.YEAR: "Y",
+    }
+    freq = freq_map[interval_enum]
 
-    grouped_data = df.groupby("grouped_date").size().reset_index(name="counts")
+    # Group the data
+    grouped_data = df.resample(freq).size()
+
+    # For non-year intervals, reindex to fill missing dates up to today
+    if interval_enum != ActivityInterval.YEAR:
+        today = datetime.utcnow().date()
+        full_date_range = pd.date_range(start=grouped_data.index.min(), end=today, freq=freq)
+        grouped_data = grouped_data.reindex(full_date_range, fill_value=0)
 
     echarts_data = {
         "title": {"text": f"Activity for {interval_enum.value}"},
         "xAxis": {
             "type": "category",
-            "data": grouped_data["grouped_date"].tolist(),
+            "data": grouped_data.index.strftime(
+                "%Y-%m-%d" if interval_enum != ActivityInterval.YEAR else "%Y"
+            ).tolist(),
         },
         "yAxis": {"type": "value"},
         "series": [
             {
-                "data": grouped_data["counts"].tolist(),
+                "data": grouped_data.tolist(),
                 "type": "line",
             }
         ],
@@ -359,3 +364,87 @@ def extrinsics_call_activity(
     )
 
     return {"callActivity": call_activity_data}
+
+
+@router.get(
+    "/transaction-rate",
+    # dependencies=[Depends(get_current_user)],
+    responses={
+        200: {
+            "description": "Transaction Rate",
+            "content": {"application/json": {"example": None}},
+        },
+        204: {
+            "description": "No content found.",
+            "content": {"application/json": {"example": None}},
+        },
+        404: {
+            "description": "Not found",
+            "content": {"application/json": {"example": {"error": "Error description"}}},
+        },
+    },
+)
+def weekly_transaction_rate(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
+    return EXTRINSICS_CONTEXT.weekly_transaction_rate(public_key=public_key)
+
+
+@router.get(
+    "/total-extrinsics",
+    # dependencies=[Depends(get_current_user)],
+    responses={
+        200: {
+            "description": "Total Extrinsics",
+            "content": {"application/json": {"example": None}},
+        },
+        204: {
+            "description": "No content found.",
+            "content": {"application/json": {"example": None}},
+        },
+        404: {
+            "description": "Not found",
+            "content": {"application/json": {"example": {"error": "Error description"}}},
+        },
+    },
+)
+def total_extrinsics(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
+    return EXTRINSICS_CONTEXT.total_extrinsics(public_key=public_key)
+
+
+@router.get(
+    "/recent-extrinsics",
+    # dependencies=[Depends(get_current_user)],
+    responses={
+        200: {
+            "description": "Recent Extrinsics",
+            "content": {"application/json": {"example": None}},
+        },
+        204: {
+            "description": "No content found.",
+            "content": {"application/json": {"example": None}},
+        },
+        404: {
+            "description": "Not found",
+            "content": {"application/json": {"example": {"error": "Error description"}}},
+        },
+    },
+)
+def recent_extrinsics(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
+    return EXTRINSICS_CONTEXT.recent_extrinsics(public_key=public_key)

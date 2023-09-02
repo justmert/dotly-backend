@@ -28,12 +28,15 @@ from tools.helpers import dot_string_to_float
 from substrateinterface import SubstrateInterface, Keypair
 from substrateinterface.utils.ss58 import ss58_encode
 
-class StatsType(Enum):
+
+class OverviewType(Enum):
     ACCOUNT = "ACCOUNT"
     MULTI_CHAIN_IDENTITY = "MULTI_CHAIN_IDENTITY"
     BALANCE_HISTORY = "BALANCE_HISTORY"
     BALANCE_STATS = "BALANCE_STATS"
     BALANCE_DISTRIBUTION = "BALANCE_DISTRIBUTION"
+    TRANSACTION_RATE = "TRANSACTION_RATE"
+
 
 class Overview:
     def __init__(
@@ -44,10 +47,11 @@ class Overview:
         self.cache_limit = 10
         self.cache = {}
         self.queue = deque(maxlen=100)
+
     def _save_to_cache(
         self,
         public_key,
-        stats_type: StatsType,
+        stats_type: OverviewType,
         data,
     ):
         self.cache[public_key][stats_type] = data
@@ -55,7 +59,7 @@ class Overview:
     def _check_cache(
         self,
         public_key,
-        stats_type: StatsType,
+        stats_type: OverviewType,
     ):
         if public_key in self.cache:
             if stats_type in self.cache[public_key]:
@@ -75,35 +79,25 @@ class Overview:
         self.queue.append(public_key)
         return False
 
-
-    def account(self,
-                  public_key,
-                  address
-                  ):
+    def account(self, public_key, address):
         if not self._check_cache(
             public_key,
-            StatsType.ACCOUNT,
+            OverviewType.ACCOUNT,
         ):
-            
-            request_data = {
-                'key': address
-            }
-            account = self.subscan_actor.subscan_rest_make_request(
-                'v2/scan/search', data=request_data)
-            
-            if account is None or not account.get('data', None):
-                
+            request_data = {"key": address}
+            account = self.subscan_actor.subscan_rest_make_request("v2/scan/search", data=request_data)
+
+            if account is None or not account.get("data", None):
                 return None
-            
+
             self._save_to_cache(
-                    public_key,
-                    StatsType.ACCOUNT,
-                    account['data']['account'],
-                )
-            
+                public_key,
+                OverviewType.ACCOUNT,
+                account["data"]["account"],
+            )
+
             # --------------------------------------------
-        return self.cache[public_key][StatsType.ACCOUNT]
-    
+        return self.cache[public_key][OverviewType.ACCOUNT]
 
     def balance_distribution(
         self,
@@ -112,26 +106,21 @@ class Overview:
     ):
         if not self._check_cache(
             public_key,
-            StatsType.BALANCE_DISTRIBUTION,
+            OverviewType.BALANCE_DISTRIBUTION,
         ):
-            request_data = {
-                'address': address
-            }
-            balance_list = self.subscan_actor.subscan_rest_make_request(
-                'scan/multiChain/account', data=request_data)
-            
-            if balance_list is None or not balance_list.get('data', None):
-                return None
-            
-            
-            self._save_to_cache(
-                    public_key,
-                    StatsType.BALANCE_DISTRIBUTION,
-                    balance_list['data'],
-                )
-            
-        return self.cache[public_key][StatsType.BALANCE_DISTRIBUTION]
+            request_data = {"address": address}
+            balance_list = self.subscan_actor.subscan_rest_make_request("scan/multiChain/account", data=request_data)
 
+            if balance_list is None or not balance_list.get("data", None):
+                return None
+
+            self._save_to_cache(
+                public_key,
+                OverviewType.BALANCE_DISTRIBUTION,
+                balance_list["data"],
+            )
+
+        return self.cache[public_key][OverviewType.BALANCE_DISTRIBUTION]
 
     def identity(
         self,
@@ -140,84 +129,67 @@ class Overview:
     ):
         if not self._check_cache(
             public_key,
-            StatsType.MULTI_CHAIN_IDENTITY,
+            OverviewType.MULTI_CHAIN_IDENTITY,
         ):
-            request_data = {
-                'address': address
-            }
+            request_data = {"address": address}
             multi_chain_identity = self.subscan_actor.subscan_rest_make_request(
-                'scan/multiChain/identities', data=request_data)
-            
-            if multi_chain_identity is None or not multi_chain_identity.get('data', None):
-                return None
-            
-            
-            self._save_to_cache(
-                    public_key,
-                    StatsType.MULTI_CHAIN_IDENTITY,
-                    multi_chain_identity['data'],
-                )
-            
-        return self.cache[public_key][StatsType.MULTI_CHAIN_IDENTITY]
+                "scan/multiChain/identities", data=request_data
+            )
 
-    
-    def balance_stats(
-            self,
-            public_key,
-            address
-    ):
+            if multi_chain_identity is None or not multi_chain_identity.get("data", None):
+                return None
+
+            self._save_to_cache(
+                public_key,
+                OverviewType.MULTI_CHAIN_IDENTITY,
+                multi_chain_identity["data"],
+            )
+
+        return self.cache[public_key][OverviewType.MULTI_CHAIN_IDENTITY]
+
+    def balance_stats(self, public_key, address):
         if not self._check_cache(
             public_key,
-            StatsType.BALANCE_STATS,
+            OverviewType.BALANCE_STATS,
         ):
+            request_data = {"address": address}
+            balance_stats = self.subscan_actor.subscan_rest_make_request(
+                "scan/multiChain/balance_value_stat", data=request_data
+            )
 
+            if balance_stats is None or not balance_stats.get("data", None):
+                return None
+
+            self._save_to_cache(
+                public_key,
+                OverviewType.BALANCE_STATS,
+                balance_stats["data"],
+            )
+
+        return self.cache[public_key][OverviewType.BALANCE_STATS]
+
+    def balance_history(self, public_key, address):
+        if not self._check_cache(
+            public_key,
+            OverviewType.BALANCE_HISTORY,
+        ):
+            # today's date
             request_data = {
-                'address': address
+                "address": address,
+                "end": datetime.now().strftime("%Y-%m-%d"),
+                "start": (datetime.now() - relativedelta(months=12)).strftime("%Y-%m-%d"),
             }
             balance_stats = self.subscan_actor.subscan_rest_make_request(
-                'scan/multiChain/balance_value_stat', data=request_data)
-            
-            if balance_stats is None or not balance_stats.get('data', None):
+                "scan/multiChain/balance_value_history", data=request_data
+            )
+
+            if balance_stats is None or not balance_stats.get("data", None):
                 return None
-            
-            
+
             self._save_to_cache(
-                    public_key,
-                    StatsType.BALANCE_STATS,
-                    balance_stats['data'],
-                )
-            
-        return self.cache[public_key][StatsType.BALANCE_STATS]
-
-
-    def balance_history(
-                self,
                 public_key,
-                address
-        ):
-            if not self._check_cache(
-                public_key,
-                StatsType.BALANCE_HISTORY,
-            ):
-                # today's date
-                request_data = {
-                    'address': address,
-                    "end": datetime.now().strftime("%Y-%m-%d"),
-                    "start": (datetime.now() - relativedelta(months=12)).strftime("%Y-%m-%d"),
-                }
-                balance_stats = self.subscan_actor.subscan_rest_make_request(
-                    'scan/multiChain/balance_value_history', data=request_data)
-                
-                if balance_stats is None or not balance_stats.get('data', None):
-                    return None
-                
-                self._save_to_cache(
-                        public_key,
-                        StatsType.BALANCE_HISTORY,
-                        balance_stats['data'],
-                    )
-                
-            return self.cache[public_key][StatsType.BALANCE_HISTORY]
+                OverviewType.BALANCE_HISTORY,
+                balance_stats["data"],
+            )
 
-
-
+        return self.cache[public_key][OverviewType.BALANCE_HISTORY]

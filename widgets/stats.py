@@ -24,15 +24,17 @@ from dateutil.relativedelta import (
     relativedelta,
 )
 from tools.helpers import dot_string_to_float
+import pandas as pd
+from datetime import date
 
 
 class StatsType(Enum):
     TOP_TRANSFERS_BY_COUNT = "TOP_TRANSFERS_BY_COUNT"
     RECENT_TRANSFERS = "RECENT_TRANSFERS"
     TRANSFER_RELATIONSHIP = "TRANSFER_RELATIONSHIP"
-    TRANSFER_DIRECTION = "TRANSFER_DIRECTION"
+    TRANSFER_HISTORY = "TRANSFER_HISTORY"
     TOTAL_TRANSFERS = "TOTAL_TRANSFERS"
-    TRANSFER_SUCCESS_RATE = "TRANSFER_SUCCESS_RATE"
+    # TRANSFER_SUCCESS_RATE = "TRANSFER_SUCCESS_RATE"
 
 
 class Stats:
@@ -94,14 +96,14 @@ class Stats:
             StatsType.RECENT_TRANSFERS,
         )
 
-    def transfer_success_rate(
-        self,
-        public_key,
-    ):
-        return self._transfers(
-            public_key,
-            StatsType.TRANSFER_SUCCESS_RATE,
-        )
+    # def transfer_success_rate(
+    #     self,
+    #     public_key,
+    # ):
+    #     return self._transfers(
+    #         public_key,
+    #         StatsType.TRANSFER_SUCCESS_RATE,
+    #     )
 
     def top_transfers_by_count(
         self,
@@ -112,13 +114,13 @@ class Stats:
             StatsType.TOP_TRANSFERS_BY_COUNT,
         )
 
-    def transfer_direction(
+    def transfer_history(
         self,
         public_key,
     ):
         return self._transfers(
             public_key,
-            StatsType.TRANSFER_DIRECTION,
+            StatsType.TRANSFER_HISTORY,
         )
 
     def total_transfers(
@@ -144,19 +146,44 @@ class Stats:
             max_fetch = 3
 
             # Fetch total count
-            total_count_query = """
+            total_to_count_query = """
                 query ($public_key: String!) {
-                transfersConnection(first: 0, orderBy: id_ASC, where: {account: {id_eq: $public_key}}) {
-                    totalCount
-                }
-            }
+                    transfersConnection(first: 0, orderBy: id_ASC, where: {account: {id_eq: $public_key}, direction_eq: To}) {
+                        totalCount
+                    }
+                }            
             """
-            total_count_result = self.subsquid_actor.subscan_main_graphql(
-                total_count_query,
+            total_to_count_result = self.subsquid_actor.subscan_main_graphql(
+                total_to_count_query,
                 {"public_key": public_key},
             )
-            total_count = (
-                total_count_result.get(
+            total_to_count = (
+                total_to_count_result.get(
+                    "data",
+                    {},
+                )
+                .get(
+                    "transfersConnection",
+                    {},
+                )
+                .get(
+                    "totalCount",
+                    0,
+                )
+            )
+            total_from_count_query = """
+                query ($public_key: String!) {
+                    transfersConnection(first: 0, orderBy: id_ASC, where: {account: {id_eq: $public_key}, direction_eq: From}) {
+                        totalCount
+                    }
+                }            
+            """
+            total_from_count_result = self.subsquid_actor.subscan_main_graphql(
+                total_from_count_query,
+                {"public_key": public_key},
+            )
+            total_from_count = (
+                total_from_count_result.get(
                     "data",
                     {},
                 )
@@ -170,11 +197,17 @@ class Stats:
                 )
             )
 
+            total_count = total_to_count + total_from_count
+
             # Saving the top 5 senders and receivers to the cache
             self._save_to_cache(
                 public_key,
                 StatsType.TOTAL_TRANSFERS,
-                total_count,
+                {
+                    "total_count": total_count,
+                    "received": total_to_count,
+                    "sent": total_from_count,
+                },
             )
 
             # Calculate starting offset
@@ -187,8 +220,6 @@ class Stats:
             while pages_fetched < max_fetch:
                 variables = {
                     "public_key": public_key,
-                    "account_limit": 1,
-                    "account_offset": 0,
                     "transfer_limit": transfer_limit,
                     "transfer_offset": transfer_offset,
                 }
@@ -212,7 +243,6 @@ class Stats:
                         }
                         direction
                         }
-                    }
                     }
                 """
 
@@ -249,18 +279,22 @@ class Stats:
             # -----------------------------------------------------------
 
             # Extract sender and receiver data
-            senders = [
-                transfer["transfer"]["from"]["publicKey"]
-                for transfer in all_transfers
-                if transfer["direction"] == "From"
-            ]
-            receivers = [
-                transfer["transfer"]["to"]["publicKey"] for transfer in all_transfers if transfer["direction"] == "To"
+            # me receives
+            all_senders = [
+                transfer["transfer"]["from"]["publicKey"] for transfer in all_transfers if transfer["direction"] == "To"
             ]
 
+            # me sent
+            all_receivers = [
+                transfer["transfer"]["to"]["publicKey"] for transfer in all_transfers if transfer["direction"] == "From"
+            ]
+
+            print(len(all_senders))
+            print(len(all_receivers))
+
             # Count occurrences
-            sender_counts = Counter(senders)
-            receiver_counts = Counter(receivers)
+            sender_counts = Counter(all_senders)
+            receiver_counts = Counter(all_receivers)
 
             # Extract top 5 senders and receivers
             top_5_senders_by_count = [
@@ -295,14 +329,12 @@ class Stats:
 
             for transfer in all_transfers:
                 if transfer["direction"] == "To":
-                    receiver = transfer["transfer"]["to"]["publicKey"]
-                    receiver_amounts[receiver] += int(
-                        transfer["transfer"]["amount"])
+                    receiver = transfer["transfer"]["from"]["publicKey"]
+                    receiver_amounts[receiver] += int(transfer["transfer"]["amount"])
 
                 elif transfer["direction"] == "From":
-                    sender = transfer["transfer"]["from"]["publicKey"]
-                    sender_amounts[sender] += int(
-                        transfer["transfer"]["amount"])
+                    sender = transfer["transfer"]["to"]["publicKey"]
+                    sender_amounts[sender] += int(transfer["transfer"]["amount"])
 
             # Sort and extract top 5 senders and receivers by amount
             top_5_senders_by_amount = sorted(
@@ -349,87 +381,47 @@ class Stats:
 
             # -----------------------------------------------------------
 
-            success_count = sum(
-                1 for transfer in all_transfers if transfer["transfer"]["success"])
-            failed_count = len(all_transfers) - success_count
-            success_rate = success_count / \
-                len(all_transfers) * \
-                100 if all_transfers else 0  # handle division by zero
+            # success_count = sum(1 for transfer in all_transfers if transfer["transfer"]["success"])
+            # failed_count = len(all_transfers) - success_count
+            # success_rate = success_count / len(all_transfers) * 100 if all_transfers else 0  # handle division by zero
 
-            # Saving the transfer success rate to the cache
-            transfer_success_rate = {
-                "success_count": success_count,
-                "failed_count": failed_count,
-                "success_rate": success_rate,
-            }
+            # # Saving the transfer success rate to the cache
+            # transfer_success_rate = {
+            #     "success_count": success_count,
+            #     "failed_count": failed_count,
+            #     "success_rate": success_rate,
+            # }
+            # self._save_to_cache(
+            #     public_key,
+            #     StatsType.TRANSFER_SUCCESS_RATE,
+            #     transfer_success_rate,
+            # )
+
+            # Convert the timestamps into 'YYYY-MM-DD' format and then count occurrences for incoming and outgoing transfers
+            all_transfers_df = pd.DataFrame(all_transfers)
+
+            # Extract timestamp from the nested 'transfer' dictionary and then convert to date format
+            all_transfers_df["transfer_date"] = all_transfers_df["transfer"].apply(lambda x: x["timestamp"])
+            all_transfers_df["transfer_date"] = pd.to_datetime(all_transfers_df["transfer_date"]).dt.date
+
+            incoming_df = all_transfers_df[all_transfers_df["direction"] == "To"].groupby("transfer_date").size()
+            outgoing_df = all_transfers_df[all_transfers_df["direction"] == "From"].groupby("transfer_date").size()
+
+            # Create a date range spanning the entire period from the earliest transfer to today
+            full_date_range = pd.date_range(start=min(all_transfers_df["transfer_date"]), end=date.today()).date
+
+            # Reindex the dataframes to this range, filling in missing dates with zero
+            incoming_df = incoming_df.reindex(full_date_range, fill_value=0)
+            outgoing_df = outgoing_df.reindex(full_date_range, fill_value=0)
+
             self._save_to_cache(
                 public_key,
-                StatsType.TRANSFER_SUCCESS_RATE,
-                transfer_success_rate,
-            )
-
-            # -----------------------------------------------------------
-
-            # Create lists to hold the data for the chart
-            timestamps = []
-            incoming_counts = []
-            outgoing_counts = []
-
-            # Create a Counter for incoming and outgoing transfers
-            incoming_counter = Counter(
-                [transfer["transfer"]["timestamp"]
-                    for transfer in all_transfers if transfer["direction"] == "To"]
-            )
-            outgoing_counter = Counter(
-                [transfer["transfer"]["timestamp"]
-                    for transfer in all_transfers if transfer["direction"] == "From"]
-            )
-
-            # Aggregate data over unique timestamps
-            for timestamp in sorted(
-                set(incoming_counter) | set(outgoing_counter)
-            ):  # Since transfers are already sorted
-                timestamps.append(timestamp)
-                incoming_counts.append(
-                    incoming_counter.get(
-                        timestamp,
-                        0,
-                    )
-                )
-                outgoing_counts.append(
-                    outgoing_counter.get(
-                        timestamp,
-                        0,
-                    )
-                )
-
-            # Construct the chart format
-            chart_format = {
-                "xAxis": {
-                    "type": "category",
-                    "data": timestamps,
+                StatsType.TRANSFER_HISTORY,
+                data={
+                    "timestamps": incoming_df.index,  # DatetimeIndex directly
+                    "incoming_counts": incoming_df,  # Series directly
+                    "outgoing_counts": outgoing_df,  # Series directly
                 },
-                "yAxis": {"type": "value"},
-                "series": [
-                    {
-                        "name": "Incoming Transfers",
-                        "type": "line",
-                        "data": incoming_counts,
-                    },
-                    {
-                        "name": "Outgoing Transfers",
-                        "type": "line",
-                        "data": outgoing_counts,
-                    },
-                ],
-            }
-
-            self._save_to_cache(
-                public_key,
-                StatsType.TRANSFER_DIRECTION,
-                data=chart_format,
             )
 
         return self.cache[public_key][stats_type]
-
-  

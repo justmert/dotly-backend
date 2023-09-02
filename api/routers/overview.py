@@ -9,24 +9,20 @@ from fastapi import (
 from ..api import (
     db,
 )
-from widgets.overview import (
-    Overview,
-    StatsType,
-)
+
 from enum import Enum
 import pandas as pd
 from substrateinterface.utils.ss58 import ss58_encode
+from api.api import OVERVIEW_CONTEXT, StatsType
 
 
 router = APIRouter()
 
-OVERVIEW_CONTEXT = Overview()
 
 def encode(public_key):
     # Convert to address
     address = ss58_encode(public_key, 0)  # 0 is the SS58 format for Polkadot
     return address
-
 
 
 @router.get(
@@ -60,9 +56,7 @@ def account(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    return OVERVIEW_CONTEXT.account(public_key=public_key, address = address)
-
-
+    return OVERVIEW_CONTEXT.account(public_key=public_key, address=address)
 
 
 @router.get(
@@ -90,7 +84,7 @@ def balance_distribution(
         description="Public Key of the account to query",
     )
 ):
-      # check if address is valid
+    # check if address is valid
     try:
         address = encode(public_key)
     except:
@@ -124,14 +118,13 @@ def identity(
         description="Public Key of the account to query",
     )
 ):
-        # check if address is valid
+    # check if address is valid
     try:
         address = encode(public_key)
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
     return OVERVIEW_CONTEXT.identity(public_key=public_key, address=address)
-
 
 
 @router.get(
@@ -159,14 +152,13 @@ def balance_stats(
         description="Public Key of the account to query",
     )
 ):
-        # check if address is valid
+    # check if address is valid
     try:
         address = encode(public_key)
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
     return OVERVIEW_CONTEXT.balance_stats(public_key=public_key, address=address)
-
 
 
 @router.get(
@@ -194,12 +186,10 @@ def balance_history(
         description="Public Key of the account to query",
     )
 ):
-        # check if address is valid
+    # check if address is valid
     try:
         address = encode(public_key)
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
     return OVERVIEW_CONTEXT.balance_history(public_key=public_key, address=address)
-
-

@@ -52,6 +52,7 @@ from fastapi import (
 )
 import tools.log_config as log_config
 
+
 SECRET_KEY = os.environ["API_SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 365
@@ -145,7 +146,7 @@ tags_metadata = [
         "name": "Extrinsics",
         "description": "Extrinsics related endpoints for account",
     },
-     {
+    {
         "name": "Rewards",
         "description": "Rewards related endpoints for account",
     },
@@ -154,6 +155,42 @@ tags_metadata = [
         "description": "Badges related endpoints for account",
     },
 ]
+
+from widgets.extrinsics import (
+    Extrinsics,
+)
+from widgets.extrinsics import ExtrinsicsType
+
+EXTRINSICS_CONTEXT = Extrinsics()
+
+from widgets.overview import (
+    Overview,
+)
+from widgets.overview import OverviewType
+
+OVERVIEW_CONTEXT = Overview()
+
+from widgets.rewards import (
+    Rewards,
+)
+from widgets.rewards import RewardsType
+
+REWARDS_CONTEXT = Rewards()
+
+from widgets.stats import (
+    Stats,
+)
+from widgets.stats import StatsType as StatsType
+
+STATS_CONTEXT = Stats()
+
+from widgets.badges import (
+    Badges,
+    StatsType,
+)
+from widgets.stats import StatsType
+
+BADGES_CONTEXT = Badges()
 
 app = FastAPI(openapi_tags=tags_metadata)
 

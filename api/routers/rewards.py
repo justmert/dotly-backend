@@ -9,16 +9,15 @@ from fastapi import (
 from ..api import (
     db,
 )
-from widgets.rewards import (
-    Rewards,
-    StatsType,
-)
+
 from enum import Enum
 import pandas as pd
+from datetime import date
+from datetime import datetime
+from api.api import REWARDS_CONTEXT, StatsType
 
 router = APIRouter()
 
-REWARDS_CONTEXT = Rewards()
 
 class HistoryInterval(
     str,
@@ -28,7 +27,6 @@ class HistoryInterval(
     WEEK = "WEEK"
     MONTH = "MONTH"
     YEAR = "YEAR"
-
 
 
 @router.get(
@@ -116,9 +114,8 @@ def reward_history(
         title="Interval",
         description="Interval to group the data",
     ),
-
 ):
-    data =  REWARDS_CONTEXT.rewards(public_key=public_key)
+    data = REWARDS_CONTEXT.rewards(public_key=public_key)
     if not data:
         raise HTTPException(
             status_code=204,
@@ -133,36 +130,44 @@ def reward_history(
             detail=f"Invalid interval: {interval}. Valid values are: {', '.join([e.value for e in HistoryInterval])}",
         )
 
-    print(data)
     df = pd.DataFrame(data)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    # Extract date from the timestamp and set as index
+    df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.date
+    df.set_index(pd.DatetimeIndex(df["timestamp"]), inplace=True)
 
-    # Use interval_enum instead of interval for checks
-    if interval_enum == HistoryInterval.DAY:
-        df["grouped_date"] = df["timestamp"].dt.date
-    elif interval_enum == HistoryInterval.WEEK:
-        df["grouped_date"] = df["timestamp"].dt.to_period("W").apply(lambda r: r.start_time.date())
-    elif interval_enum == HistoryInterval.MONTH:
-        df["grouped_date"] = df["timestamp"].dt.to_period("M").apply(lambda r: r.start_time.date())
-    elif interval_enum == HistoryInterval.YEAR:
-        df["grouped_date"] = df["timestamp"].dt.to_period("Y").apply(lambda r: r.start_time.date())
+    # Determine resampling frequency
+    freq_map = {
+        HistoryInterval.DAY: "D",
+        HistoryInterval.WEEK: "W-MON",
+        HistoryInterval.MONTH: "M",
+        HistoryInterval.YEAR: "Y",
+    }
+    freq = freq_map[interval_enum]
 
-    grouped_data = df.groupby("grouped_date").size().reset_index(name="counts")
+    # Group the data
+    grouped_data = df.resample(freq).size()
+
+    # For non-year intervals, reindex to fill missing dates up to today
+    if interval_enum != HistoryInterval.YEAR:
+        today = datetime.utcnow().date()
+        full_date_range = pd.date_range(start=grouped_data.index.min(), end=today, freq=freq)
+        grouped_data = grouped_data.reindex(full_date_range, fill_value=0)
 
     echarts_data = {
         "title": {"text": f"Activity for {interval.value}"},
         "xAxis": {
             "type": "category",
-            "data": grouped_data["grouped_date"].tolist(),
+            "data": grouped_data.index.strftime("%Y-%m-%d" if interval_enum != HistoryInterval.YEAR else "%Y").tolist(),
         },
         "yAxis": {"type": "value"},
         "series": [
             {
-                "data": grouped_data["counts"].tolist(),
+                "data": grouped_data.tolist(),
                 "type": "line",
             }
         ],
     }
+
     return echarts_data
 
 
@@ -192,4 +197,3 @@ def reward_relationship(
     )
 ):
     return REWARDS_CONTEXT.reward_relationship(public_key=public_key)
-

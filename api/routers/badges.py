@@ -4,20 +4,45 @@ from fastapi import (
 from fastapi import (
     Path,
     HTTPException,
+    Query,
 )
 from ..api import (
     db,
 )
 
+from enum import (
+    Enum,
+)
+from datetime import (
+    datetime,
+    timedelta,
+)
+from collections import (
+    defaultdict,
+)
+import pandas as pd
+from collections import (
+    Counter,
+)
+from collections import (
+    defaultdict,
+)
+from datetime import (
+    datetime,
+    timedelta,
+)
+from api.api import BADGES_CONTEXT, StatsType
+
+
 router = APIRouter()
 
 
 @router.get(
-    "/template",
+    "/check-badges",
     # dependencies=[Depends(get_current_user)],
     responses={
         200: {
-            "description": "Full Time",
+            "description": "Check Badges",
             "content": {"application/json": {"example": None}},
         },
         204: {
@@ -30,10 +55,11 @@ router = APIRouter()
         },
     },
 )
-def template():
-    """
-    Template
-
-    """
-
-    return None
+def check_badges(
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
+):
+    return BADGES_CONTEXT.check_badges(public_key=public_key)

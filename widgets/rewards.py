@@ -26,7 +26,7 @@ from dateutil.relativedelta import (
 from tools.helpers import dot_string_to_float
 
 
-class StatsType(Enum):
+class RewardsType(Enum):
     REWARDS = "REWARDS"
     REWARD_RELATIONSHIP = "REWARD_RELATIONSHIP"
     RECENT_REWARDS = "RECENT_REWARDS"
@@ -47,7 +47,7 @@ class Rewards:
     def _save_to_cache(
         self,
         public_key,
-        stats_type: StatsType,
+        stats_type: RewardsType,
         data,
     ):
         self.cache[public_key][stats_type] = data
@@ -55,7 +55,7 @@ class Rewards:
     def _check_cache(
         self,
         public_key,
-        stats_type: StatsType,
+        stats_type: RewardsType,
     ):
         if public_key in self.cache:
             if stats_type in self.cache[public_key]:
@@ -81,7 +81,7 @@ class Rewards:
     ):
         return self._rewards(
             public_key,
-            StatsType.TOTAL_REWARDS,
+            RewardsType.TOTAL_REWARDS,
         )
 
     def recent_rewards(
@@ -90,7 +90,7 @@ class Rewards:
     ):
         all_rewards = self._rewards(
             public_key,
-            StatsType.REWARDS,
+            RewardsType.REWARDS,
         )
         latest_10_rewards = []
         if len(all_rewards) > 10:
@@ -100,15 +100,13 @@ class Rewards:
             latest_10_rewards = all_rewards
         return latest_10_rewards
 
-
-
     def rewards(
         self,
         public_key,
     ):
         return self._rewards(
             public_key,
-            StatsType.REWARDS,
+            RewardsType.REWARDS,
         )
 
     def reward_relationship(
@@ -117,13 +115,13 @@ class Rewards:
     ):
         return self._rewards(
             public_key,
-            StatsType.REWARD_RELATIONSHIP,
+            RewardsType.REWARD_RELATIONSHIP,
         )
 
     def _rewards(
         self,
         public_key,
-        stats_type: StatsType,
+        stats_type: RewardsType,
     ):
         if not self._check_cache(
             public_key,
@@ -158,13 +156,6 @@ class Rewards:
                     "totalCount",
                     0,
                 )
-            )
-
-            # Saving the top 5 senders and receivers to the cache
-            self._save_to_cache(
-                public_key,
-                StatsType.TOTAL_REWARDS,
-                total_count,
             )
 
             # Calculate starting offset
@@ -211,17 +202,29 @@ class Rewards:
                 pages_fetched += 1
                 reward_offset += reward_limit
 
-                all_rewards = [{"amount": dot_string_to_float(reward["amount"]), **{k: v for k, v in reward.items() if k != "amount"}} for reward in all_rewards]
+                all_rewards = [
+                    {
+                        "amount": dot_string_to_float(reward["amount"]),
+                        **{k: v for k, v in reward.items() if k != "amount"},
+                    }
+                    for reward in all_rewards
+                ]
+
             self._save_to_cache(
                 public_key,
-                StatsType.REWARDS,
+                RewardsType.REWARDS,
                 all_rewards,
+            )
+
+            # Saving the top 5 senders and receivers to the cache
+            self._save_to_cache(
+                public_key,
+                RewardsType.TOTAL_REWARDS,
+                {"total_amount": sum([reward["amount"] for reward in all_rewards]), "total_count": total_count},
             )
             # -----------------------------------------------------------
 
-            validators = [
-                reward["validatorId"] for reward in all_rewards
-            ]
+            validators = [reward["validatorId"] for reward in all_rewards]
 
             # Count occurrences
             validator_counts = Counter(validators)
@@ -260,12 +263,8 @@ class Rewards:
 
             self._save_to_cache(
                 public_key,
-                StatsType.REWARD_RELATIONSHIP,
-                data={
-                    "count": top_5_validators_by_count,
-                    "amount": top_5_validators_by_amount
-                },
+                RewardsType.REWARD_RELATIONSHIP,
+                data={"count": top_5_validators_by_count, "amount": top_5_validators_by_amount},
             )
-
 
         return self.cache[public_key][stats_type]

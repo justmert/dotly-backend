@@ -12,17 +12,10 @@ from ..api import (
 
 from enum import Enum
 import pandas as pd
-from substrateinterface.utils.ss58 import ss58_encode
 from api.api import OVERVIEW_CONTEXT, StatsType
-
+from tools.helpers import encode
 
 router = APIRouter()
-
-
-def encode(public_key):
-    # Convert to address
-    address = ss58_encode(public_key, 0)  # 0 is the SS58 format for Polkadot
-    return address
 
 
 @router.get(

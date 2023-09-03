@@ -181,7 +181,6 @@ class Extrinsics:
                     query,
                     variables,
                 )
-                print(result)
                 extrinsics = result.get("data", {}).get(
                     "extrinsics",
                     [],
@@ -318,4 +317,31 @@ class Extrinsics:
         return self._extrinsics(
             public_key,
             ExtrinsicsType.WEEKLY_TRANSACTION_RATE,
+        )
+
+    def extrinsics(
+        self,
+        public_key,
+    ):
+        return self._extrinsics(
+            public_key,
+            ExtrinsicsType.EXTRINSICS,
+        )
+
+    def distribution(
+        self,
+        public_key,
+    ):
+        return self._extrinsics(
+            public_key,
+            ExtrinsicsType.DISTRIBUTION,
+        )
+
+    def top_interacted(
+        self,
+        public_key,
+    ):
+        return self._extrinsics(
+            public_key,
+            ExtrinsicsType.TOP_INTERACTED,
         )

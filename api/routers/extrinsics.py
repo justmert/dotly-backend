@@ -77,10 +77,7 @@ def extrinsics_activity(
         description="Interval to group the data",
     ),
 ):
-    data = EXTRINSICS_CONTEXT._extrinsics(
-        public_key=public_key,
-        stats_type=ExtrinsicsType.EXTRINSICS,
-    )
+    data = EXTRINSICS_CONTEXT.extrinsics(public_key)
     if not data:
         raise HTTPException(
             status_code=204,
@@ -157,12 +154,7 @@ def extrinsics_activity(
 def extrinsics_distribution(
     public_key: str,
 ):
-    data = EXTRINSICS_CONTEXT._extrinsics(
-        public_key=public_key,
-        stats_type=ExtrinsicsType.DISTRIBUTION,
-    )
-
-    return data
+    return EXTRINSICS_CONTEXT.distribution(public_key)
 
 
 @router.get(
@@ -186,11 +178,7 @@ def extrinsics_distribution(
 def extrinsics_top_interacted_modules(
     public_key: str,
 ):
-    data = EXTRINSICS_CONTEXT._extrinsics(
-        public_key=public_key,
-        stats_type=ExtrinsicsType.TOP_INTERACTED,
-    )
-    return data
+    return EXTRINSICS_CONTEXT.top_interacted(public_key)
 
 
 @router.get(
@@ -233,10 +221,7 @@ def extrinsics_top_interacted_modules(
 def extrinsics_success_rate(
     public_key: str,
 ):
-    data = EXTRINSICS_CONTEXT._extrinsics(
-        public_key=public_key,
-        stats_type=ExtrinsicsType.EXTRINSICS,
-    )
+    data = EXTRINSICS_CONTEXT.extrinsics(public_key)
 
     if not data:
         raise HTTPException(
@@ -343,10 +328,7 @@ def extrinsics_call_activity(
     call_name: str,
     interval: ActivityInterval,
 ):
-    data = EXTRINSICS_CONTEXT._extrinsics(
-        public_key=public_key,
-        stats_type=ExtrinsicsType.EXTRINSICS,
-    )
+    data = EXTRINSICS_CONTEXT.extrinsics(public_key)
 
     if not data:
         raise HTTPException(

@@ -29,7 +29,7 @@ from datetime import date
 
 
 class StatsType(Enum):
-    TOP_TRANSFERS_BY_COUNT = "TOP_TRANSFERS_BY_COUNT"
+    # TOP_TRANSFERS_BY_COUNT = "TOP_TRANSFERS_BY_COUNT"
     RECENT_TRANSFERS = "RECENT_TRANSFERS"
     TRANSFER_RELATIONSHIP = "TRANSFER_RELATIONSHIP"
     TRANSFER_HISTORY = "TRANSFER_HISTORY"
@@ -105,14 +105,14 @@ class Stats:
     #         StatsType.TRANSFER_SUCCESS_RATE,
     #     )
 
-    def top_transfers_by_count(
-        self,
-        public_key,
-    ):
-        return self._transfers(
-            public_key,
-            StatsType.TOP_TRANSFERS_BY_COUNT,
-        )
+    # def top_transfers_by_count(
+    #     self,
+    #     public_key,
+    # ):
+    #     return self._transfers(
+    #         public_key,
+    #         StatsType.TOP_TRANSFERS_BY_COUNT,
+    #     )
 
     def transfer_history(
         self,
@@ -289,9 +289,6 @@ class Stats:
                 transfer["transfer"]["to"]["publicKey"] for transfer in all_transfers if transfer["direction"] == "From"
             ]
 
-            print(len(all_senders))
-            print(len(all_receivers))
-
             # Count occurrences
             sender_counts = Counter(all_senders)
             receiver_counts = Counter(all_receivers)
@@ -313,14 +310,14 @@ class Stats:
             ]
 
             # Saving the top 5 senders and receivers to the cache
-            self._save_to_cache(
-                public_key,
-                StatsType.TOP_TRANSFERS_BY_COUNT,
-                {
-                    "senders": top_5_senders_by_count,
-                    "receivers": top_5_receivers_by_count,
-                },
-            )
+            # self._save_to_cache(
+            #     public_key,
+            #     StatsType.TOP_TRANSFERS_BY_COUNT,
+            #     {
+            #         "senders": top_5_senders_by_count,
+            #         "receivers": top_5_receivers_by_count,
+            #     },
+            # )
 
             # -----------------------------------------------------------
             # Dictionaries to hold total amount for each sender and receiver

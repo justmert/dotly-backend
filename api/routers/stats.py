@@ -83,32 +83,32 @@ def recent_transfers(
     return STATS_CONTEXT.recent_transfers(public_key=public_key)
 
 
-@router.get(
-    "/top-transfers-by-count",
-    # dependencies=[Depends(get_current_user)],
-    responses={
-        200: {
-            "description": "Top Transfers",
-            "content": {"application/json": {"example": None}},
-        },
-        204: {
-            "description": "No content found.",
-            "content": {"application/json": {"example": None}},
-        },
-        404: {
-            "description": "Not found",
-            "content": {"application/json": {"example": {"error": "Error description"}}},
-        },
-    },
-)
-def top_transfers_by_count(
-    public_key: str = Query(
-        ...,
-        title="Public Key",
-        description="Public Key of the account to query",
-    )
-):
-    return STATS_CONTEXT.top_transfers_by_count(public_key=public_key)
+# @router.get(
+#     "/top-transfers-by-count",
+#     # dependencies=[Depends(get_current_user)],
+#     responses={
+#         200: {
+#             "description": "Top Transfers",
+#             "content": {"application/json": {"example": None}},
+#         },
+#         204: {
+#             "description": "No content found.",
+#             "content": {"application/json": {"example": None}},
+#         },
+#         404: {
+#             "description": "Not found",
+#             "content": {"application/json": {"example": {"error": "Error description"}}},
+#         },
+#     },
+# )
+# def top_transfers_by_count(
+#     public_key: str = Query(
+#         ...,
+#         title="Public Key",
+#         description="Public Key of the account to query",
+#     )
+# ):
+#     return STATS_CONTEXT.top_transfers_by_count(public_key=public_key)
 
 
 @router.get(

@@ -32,6 +32,13 @@ from datetime import (
     timedelta,
 )
 from api.api import EXTRINSICS_CONTEXT, ExtrinsicsType
+import tools.log_config as log_config
+import os
+import logging
+
+current_file_path = os.path.abspath(__file__)
+base_dir = os.path.dirname(current_file_path)
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
@@ -157,28 +164,28 @@ def extrinsics_distribution(
     return EXTRINSICS_CONTEXT.distribution(public_key)
 
 
-@router.get(
-    "/top-interacted",
-    # dependencies=[Depends(get_current_user)],
-    responses={
-        200: {
-            "description": "Distribution data.",
-            "content": {"application/json": {"example": None}},
-        },
-        204: {
-            "description": "No content found.",
-            "content": {"application/json": {"example": None}},
-        },
-        404: {
-            "description": "Not found",
-            "content": {"application/json": {"example": {"error": "Error description"}}},
-        },
-    },
-)
-def extrinsics_top_interacted_modules(
-    public_key: str,
-):
-    return EXTRINSICS_CONTEXT.top_interacted(public_key)
+# @router.get(
+#     "/top-interacted",
+#     # dependencies=[Depends(get_current_user)],
+#     responses={
+#         200: {
+#             "description": "Distribution data.",
+#             "content": {"application/json": {"example": None}},
+#         },
+#         204: {
+#             "description": "No content found.",
+#             "content": {"application/json": {"example": None}},
+#         },
+#         404: {
+#             "description": "Not found",
+#             "content": {"application/json": {"example": {"error": "Error description"}}},
+#         },
+#     },
+# )
+# def extrinsics_top_interacted_modules(
+#     public_key: str,
+# ):
+#     return EXTRINSICS_CONTEXT.top_interacted(public_key)
 
 
 @router.get(

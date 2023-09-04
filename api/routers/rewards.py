@@ -15,6 +15,13 @@ import pandas as pd
 from datetime import date
 from datetime import datetime
 from api.api import REWARDS_CONTEXT, StatsType
+import tools.log_config as log_config
+import os
+import logging
+
+current_file_path = os.path.abspath(__file__)
+base_dir = os.path.dirname(current_file_path)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

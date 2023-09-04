@@ -32,6 +32,13 @@ from datetime import (
     timedelta,
 )
 from api.api import BADGES_CONTEXT, StatsType
+import tools.log_config as log_config
+import os
+import logging
+
+current_file_path = os.path.abspath(__file__)
+base_dir = os.path.dirname(current_file_path)
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()

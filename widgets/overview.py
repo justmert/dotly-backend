@@ -27,6 +27,14 @@ from tools.helpers import dot_string_to_float
 
 from substrateinterface import SubstrateInterface, Keypair
 from substrateinterface.utils.ss58 import ss58_encode
+import threading
+import tools.log_config as log_config
+import os
+import logging
+
+current_file_path = os.path.abspath(__file__)
+base_dir = os.path.dirname(current_file_path)
+logger = logging.getLogger(__name__)
 
 
 class OverviewType(Enum):
@@ -39,45 +47,41 @@ class OverviewType(Enum):
 
 
 class Overview:
-    def __init__(
-        self,
-    ):
+    def __init__(self):
         self.subscan_actor = SubscanActor()
         self.subsquid_actor = SubSquidActor()
         self.cache_limit = 10
         self.cache = {}
-        self.queue = deque(maxlen=100)
+        # queue now stores tuples of (public_key, lock)
+        self.locks_dict = {}
+        self.queue = deque(maxlen=100)  # This will only store public_keys now
 
-    def _save_to_cache(
-        self,
-        public_key,
-        stats_type: OverviewType,
-        data,
-    ):
-        self.cache[public_key][stats_type] = data
+    def _get_lock_for_key(self, key):
+        if key not in self.locks_dict:
+            self.locks_dict[key] = threading.Lock()
 
-    def _check_cache(
-        self,
-        public_key,
-        stats_type: OverviewType,
-    ):
-        if public_key in self.cache:
-            if stats_type in self.cache[public_key]:
-                return True
-            else:
-                return False
+            # If the queue is full, pop the oldest key and delete its lock
+            if len(self.queue) == self.queue.maxlen:
+                oldest_key = self.queue.popleft()
+                del self.locks_dict[oldest_key]
 
-        self.cache[public_key] = {}
-        popped_value = None
+            self.queue.append(key)
 
-        if len(self.queue) == self.queue.maxlen:
-            popped_value = self.queue.popleft()  # Remove the oldest value and get it
+            # If a new key is being added, ensure its presence in the cache
+            if key not in self.cache:
+                self.cache[key] = {}
 
-        if popped_value is not None:
-            del self.cache[popped_value]
+        return self.locks_dict[key]
 
-        self.queue.append(public_key)
-        return False
+    def _save_to_cache(self, public_key, stats_type: OverviewType, data):
+        key_lock = self._get_lock_for_key(public_key)
+        with key_lock:
+            self.cache[public_key][stats_type] = data
+
+    def _check_cache(self, public_key, stats_type: OverviewType):
+        key_lock = self._get_lock_for_key(public_key)
+        with key_lock:
+            return public_key in self.cache and stats_type in self.cache[public_key]
 
     def account(self, public_key, address):
         if not self._check_cache(

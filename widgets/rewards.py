@@ -184,7 +184,7 @@ class Rewards:
 
                     query = """
                     query ($public_key: String! $reward_limit: Int!, $reward_offset: Int!) {
-                    stakingRewards(orderBy:timestamp_DESC limit: $reward_limit, offset: $reward_offset, where: {account: {publicKey_eq: $public_key}})
+                    stakingRewards(limit: $reward_limit, offset: $reward_offset, where: {account: {publicKey_eq: $public_key}})
                     {
                         id
                         timestamp

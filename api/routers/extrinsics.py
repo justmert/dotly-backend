@@ -67,7 +67,16 @@ class CallActivityInterval(
     responses={
         200: {
             "description": "Extrinsics Activity",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": {
+                        "title": {"text": "Activity for YEAR"},
+                        "xAxis": {"type": "category", "data": ["2020", "2021", "2022", "2023"]},
+                        "yAxis": {"type": "value"},
+                        "series": [{"data": [62, 81, 10, 18], "type": "line"}],
+                    }
+                }
+            },
         },
         204: {
             "description": "No content found.",
@@ -153,7 +162,32 @@ def extrinsics_activity(
     responses={
         200: {
             "description": "Extrinsics Distribution",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": {
+                        "pallets": {
+                            "Balances": 91,
+                            "Staking": 45,
+                            "Utility": 16,
+                            "Identity": 14,
+                            "ElectionsPhragmen": 2,
+                            "Claims": 1,
+                            "System": 1,
+                            "PhragmenElection": 1,
+                        },
+                        "calls": {
+                            "Balances": {"transfer_keep_alive": 79, "transfer": 12},
+                            "Staking": {"payout_stakers": 41, "set_controller": 2, "bond": 1, "bond_extra": 1},
+                            "Utility": {"batch": 16},
+                            "Identity": {"set_subs": 12, "set_identity": 1, "request_judgement": 1},
+                            "ElectionsPhragmen": {"vote": 2},
+                            "Claims": {"attest": 1},
+                            "System": {"remark": 1},
+                            "PhragmenElection": {"vote": 1},
+                        },
+                    }
+                }
+            },
         },
         204: {
             "description": "No content found.",
@@ -187,20 +221,8 @@ def extrinsics_distribution(
             "content": {
                 "application/json": {
                     "example": {
-                        "legendData": [
-                            "Successful",
-                            "Failed",
-                        ],
-                        "seriesData": [
-                            {
-                                "name": "Successful",
-                                "value": 1000,
-                            },
-                            {
-                                "name": "Failed",
-                                "value": 200,
-                            },
-                        ],
+                        "legendData": ["Successful", "Failed"],
+                        "seriesData": [{"name": "Successful", "value": 169}, {"name": "Failed", "value": 2}],
                     }
                 }
             },
@@ -261,7 +283,16 @@ def extrinsics_success_rate(
     responses={
         200: {
             "description": "Extrinsics call activity",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": {
+                        "title": {"text": "Activity for YEAR"},
+                        "xAxis": {"type": "category", "data": ["2020", "2021", "2022", "2023"]},
+                        "yAxis": {"type": "value"},
+                        "series": [{"data": [62, 81, 10, 18], "type": "line"}],
+                    }
+                }
+            },
         },
         204: {
             "description": "No content found.",
@@ -337,7 +368,7 @@ def extrinsics_call_activity(
     responses={
         200: {
             "description": "Extrinsics transaction rate",
-            "content": {"application/json": {"example": None}},
+            "content": {"application/json": {"example": {"last_week_transaction_count": 11}}},
         },
         204: {
             "description": "No content found.",
@@ -368,7 +399,7 @@ def weekly_transaction_rate(
     responses={
         200: {
             "description": "Total Extrinsics",
-            "content": {"application/json": {"example": None}},
+            "content": {"application/json": {"example": {"total_count": 171}}},
         },
         204: {
             "description": "No content found.",
@@ -399,7 +430,18 @@ def total_extrinsics(
     responses={
         200: {
             "description": "Recent Extrinsics",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "id": "0016794118-000002-72f2c",
+                            "success": True,
+                            "timestamp": "2023-08-11T05:30:30.000000Z",
+                            "mainCall": {"callName": "payout_stakers", "palletName": "Staking"},
+                        }
+                    ]
+                }
+            },
         },
         204: {
             "description": "No content found.",

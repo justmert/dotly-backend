@@ -70,4 +70,6 @@ def check_badges(
         description="Public Key of the account to query",
     )
 ):
-    return BADGES_CONTEXT.check_badges(public_key=public_key)
+    data = BADGES_CONTEXT.check_badges(public_key=public_key)
+    if data is None:
+        raise HTTPException(status_code=404, detail="Check for public key!")

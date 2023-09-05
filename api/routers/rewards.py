@@ -38,7 +38,7 @@ class HistoryInterval(
     responses={
         200: {
             "description": "Total Rewards",
-            "content": {"application/json": {"example": None}},
+            "content": {"application/json": {"example": {"total_amount": 258107.09219796103, "total_count": 1185}}},
         },
         204: {
             "description": "No content found.",
@@ -69,7 +69,19 @@ def total_rewards(
     responses={
         200: {
             "description": "Recent Rewards",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": [
+                        {
+                            "amount": 396.0418857039,
+                            "id": "0017159773-000602-5d32e",
+                            "timestamp": "2023-09-05T15:46:24.000000Z",
+                            "validatorId": "0x127a30e486492921e58f2564b36ab1ca21ff630672f0e76920edd601f8f2b89a",
+                            "era": 1189,
+                        }
+                    ]
+                }
+            },
         },
         204: {
             "description": "No content found.",
@@ -100,7 +112,16 @@ def recent_rewards(
     responses={
         200: {
             "description": "Reward History",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": {
+                        "title": {"text": "Activity for YEAR"},
+                        "xAxis": {"type": "category", "data": ["2020", "2021", "2022", "2023"]},
+                        "yAxis": {"type": "value"},
+                        "series": [{"data": [212, 361, 362, 250], "type": "line"}],
+                    }
+                }
+            },
         },
         204: {
             "description": "No content found.",
@@ -186,7 +207,24 @@ def reward_history(
     responses={
         200: {
             "description": "Reward Relationship",
-            "content": {"application/json": {"example": None}},
+            "content": {
+                "application/json": {
+                    "example": {
+                        "count": [
+                            {
+                                "validator_id": "0x127a30e486492921e58f2564b36ab1ca21ff630672f0e76920edd601f8f2b89a",
+                                "count": 965,
+                            }
+                        ],
+                        "amount": [
+                            {
+                                "validator_id": "0x127a30e486492921e58f2564b36ab1ca21ff630672f0e76920edd601f8f2b89a",
+                                "amount": 223307.71742065522,
+                            }
+                        ],
+                    }
+                }
+            },
         },
         204: {
             "description": "No content found.",

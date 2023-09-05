@@ -300,7 +300,10 @@ class Badges:
         return total_amount is not None and total_amount > 1000
 
     def check_badges(self, public_key):
-        address = encode(public_key)
+        try:
+            address = encode(public_key)
+        except:
+            return None
 
         badges = [
             {

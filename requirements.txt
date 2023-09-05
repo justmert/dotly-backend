@@ -16,3 +16,4 @@ numpy==1.22.3
 firebase-admin==6.1.0
 pandas==1.5.3
 substrate-interface==1.7.1
+

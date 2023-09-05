@@ -32,6 +32,7 @@ from datetime import (
     datetime,
     timedelta,
 )
+import pandas as pd
 from api.api import EXTRINSICS_CONTEXT, ExtrinsicsType, get_current_user
 import tools.log_config as log_config
 import os
@@ -53,6 +54,18 @@ class ActivityInterval(
     WEEK = "WEEK"
     MONTH = "MONTH"
     YEAR = "YEAR"
+
+
+class CallActivityInterval(
+    str,
+    Enum,
+):
+    DAY = "DAY"
+    WEEK = "WEEK"
+    MONTH = "MONTH"
+    YEAR = "YEAR"
+
+
 
 
 @router.get(
@@ -143,7 +156,7 @@ def extrinsics_activity(
 
 @router.get(
     "/distribution",
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Extrinsics Distribution",
@@ -160,7 +173,11 @@ def extrinsics_activity(
     },
 )
 def extrinsics_distribution(
-    public_key: str,
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
 ):
     data =  EXTRINSICS_CONTEXT.distribution(public_key)
     if data is None:
@@ -205,7 +222,11 @@ def extrinsics_distribution(
     },
 )
 def extrinsics_success_rate(
-    public_key: str,
+    public_key: str = Query(
+        ...,
+        title="Public Key",
+        description="Public Key of the account to query",
+    )
 ):
     data = EXTRINSICS_CONTEXT.extrinsics(public_key)
 
@@ -239,65 +260,13 @@ def extrinsics_success_rate(
 
     return echarts_data
 
-
-def group_by_interval(
-    data,
-    interval,
-):
-    result = defaultdict(int)
-
-    for entry in data:
-        timestamp = entry["timestamp"]
-        dt = datetime.strptime(
-            timestamp,
-            "%Y-%m-%dT%H:%M:%S.%fZ",
-        )
-        if interval == ActivityInterval.DAY:
-            key = dt.strftime("%Y-%m-%d")
-        elif interval == ActivityInterval.WEEK:
-            start = dt - timedelta(days=dt.weekday())
-            end = start + timedelta(days=6)
-            key = f"{start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}"
-        elif interval == ActivityInterval.MONTH:
-            key = dt.strftime("%Y-%m")
-        elif interval == ActivityInterval.YEAR:
-            key = dt.strftime("%Y")
-        else:
-            key = "unknown"
-
-        result[key] += 1
-
-    return [
-        {
-            "date": key,
-            "count": value,
-        }
-        for key, value in result.items()
-    ]
-
-
 @router.get(
     "/call-activity",
-    dependencies=[Depends(get_current_user)],
+    # dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Extrinsics call activity",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "callActivity": [
-                            {
-                                "date": "2022-08",
-                                "count": 10,
-                            },
-                            {
-                                "date": "2022-09",
-                                "count": 5,
-                            },
-                        ]
-                    }
-                }
-            },
+            "content": {"application/json": {"example": None}},
         },
         204: {
             "description": "No content found.",
@@ -310,33 +279,63 @@ def group_by_interval(
     },
 )
 def extrinsics_call_activity(
-    public_key: str,
-    call_name: str,
-    interval: ActivityInterval,
+    public_key: str = Query(..., title="Public Key", description="Public Key of the account to query"),
+    call_name: str = Query(..., title="Call Name", description="Call name to filter the data"),
+    interval: CallActivityInterval = Query(..., title="Interval", description="Interval to group the data"),
 ):
     data = EXTRINSICS_CONTEXT.extrinsics(public_key)
+    print("No contenwwt found.")
 
     if not data:
         raise HTTPException(
             status_code=204,
             detail="No content found.",
         )
-
     # Filtering data by the specified call name
     filtered_data = [entry for entry in data if entry["mainCall"]["callName"] == call_name]
-
-    # Grouping data by the specified interval
-    call_activity_data = group_by_interval(
-        filtered_data,
-        interval,
-    )
-    if not call_activity_data:
+    if len(filtered_data) == 0:
+        print("No content found.")
         raise HTTPException(
             status_code=204,
-            detail="No content found.",
+            detail=f"No content found for call name: {call_name}",
         )
+    df = pd.DataFrame(data)
+    df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.date
+    df.set_index(pd.DatetimeIndex(df["timestamp"]), inplace=True)
+    
+    # Determine resampling frequency
+    freq_map = {
+        CallActivityInterval.DAY: "D",
+        CallActivityInterval.WEEK: "W-MON",
+        CallActivityInterval.MONTH: "M",
+        CallActivityInterval.YEAR: "Y",
+    }
+    freq = freq_map[interval]
 
-    return {"callActivity": call_activity_data}
+    # Group the data
+    grouped_data = df.resample(freq).size()
+
+    # For non-year intervals, reindex to fill missing dates up to today
+    if interval != CallActivityInterval.YEAR:
+        today = datetime.utcnow().date()
+        full_date_range = pd.date_range(start=grouped_data.index.min(), end=today, freq=freq)
+        grouped_data = grouped_data.reindex(full_date_range, fill_value=0)
+
+    echarts_data = {
+        "title": {"text": f"Activity for {interval.value}"},
+        "xAxis": {
+            "type": "category",
+            "data": grouped_data.index.strftime("%Y-%m-%d" if interval != CallActivityInterval.YEAR else "%Y").tolist(),
+        },
+        "yAxis": {"type": "value"},
+        "series": [
+            {
+                "data": grouped_data.tolist(),
+                "type": "line",
+            }
+        ],
+    }
+    return echarts_data
 
 
 @router.get(

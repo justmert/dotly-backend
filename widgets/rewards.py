@@ -50,7 +50,7 @@ class Rewards:
         self.cache = {}
         # queue now stores tuples of (public_key, lock)
         self.locks_dict = {}
-        self.queue = deque(maxlen=100)  # This will only store public_keys now
+        self.queue = deque(maxlen=10)  # This will only store public_keys now
 
     def _get_lock_for_key(self, key):
         if key not in self.locks_dict:
@@ -135,7 +135,7 @@ class Rewards:
                 stats_type,
             ):
                 all_rewards = []
-                reward_limit = 10000
+                reward_limit = 50000
                 max_fetch = 3
 
                 # Fetch total count

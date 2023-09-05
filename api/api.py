@@ -235,31 +235,13 @@ app.include_router(
     tags=[tags_metadata[5]["name"]],
 )
 
-
-origins = [
-    "https://192.168.1.4:8000",
-    "https://localhost:3000",
-    "http://localhost:3000",
-    "http://localhost:3000/",
-    "https://192.168.1.4",
-    "http://localhost",
-    "http://localhost:8080",
-    "http://192.168.1.8:63157",
-    "http://192.168.1.8",
-    "https://dotly-dev.vercel.app"
-    "http://dotly-dev.vercel.app"
-    "http://www.dotly-dev.vercel.app"
-    "https://www.dotly-dev.vercel.app",
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 class AdminIn(BaseModel):
     admin_username: str = Field(

@@ -50,7 +50,7 @@ class Overview:
         self.cache = {}
         # queue now stores tuples of (public_key, lock)
         self.locks_dict = {}
-        self.queue = deque(maxlen=100)  # This will only store public_keys now
+        self.queue = deque(maxlen=10)  # This will only store public_keys now
 
     def _get_lock_for_key(self, key):
         if key not in self.locks_dict:

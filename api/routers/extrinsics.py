@@ -5,6 +5,7 @@ from fastapi import (
     Path,
     HTTPException,
     Query,
+    Depends
 )
 from ..api import (
     db,
@@ -31,7 +32,7 @@ from datetime import (
     datetime,
     timedelta,
 )
-from api.api import EXTRINSICS_CONTEXT, ExtrinsicsType
+from api.api import EXTRINSICS_CONTEXT, ExtrinsicsType, get_current_user
 import tools.log_config as log_config
 import os
 import logging
@@ -56,10 +57,10 @@ class ActivityInterval(
 
 @router.get(
     "/activity",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
-            "description": "",
+            "description": "Extrinsics Activity",
             "content": {"application/json": {"example": None}},
         },
         204: {
@@ -142,10 +143,10 @@ def extrinsics_activity(
 
 @router.get(
     "/distribution",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
-            "description": "Distribution data.",
+            "description": "Extrinsics Distribution",
             "content": {"application/json": {"example": None}},
         },
         204: {
@@ -161,39 +162,17 @@ def extrinsics_activity(
 def extrinsics_distribution(
     public_key: str,
 ):
-    return EXTRINSICS_CONTEXT.distribution(public_key)
-
-
-# @router.get(
-#     "/top-interacted",
-#     # dependencies=[Depends(get_current_user)],
-#     responses={
-#         200: {
-#             "description": "Distribution data.",
-#             "content": {"application/json": {"example": None}},
-#         },
-#         204: {
-#             "description": "No content found.",
-#             "content": {"application/json": {"example": None}},
-#         },
-#         404: {
-#             "description": "Not found",
-#             "content": {"application/json": {"example": {"error": "Error description"}}},
-#         },
-#     },
-# )
-# def extrinsics_top_interacted_modules(
-#     public_key: str,
-# ):
-#     return EXTRINSICS_CONTEXT.top_interacted(public_key)
-
+    data =  EXTRINSICS_CONTEXT.distribution(public_key)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 @router.get(
     "/success-rate",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
-            "description": "The success rate of the extrinsics in pie chart format.",
+            "description": "The success rate of the extrinsics",
             "content": {
                 "application/json": {
                     "example": {
@@ -299,10 +278,10 @@ def group_by_interval(
 
 @router.get(
     "/call-activity",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
-            "description": "Call activity data.",
+            "description": "Extrinsics call activity",
             "content": {
                 "application/json": {
                     "example": {
@@ -351,16 +330,21 @@ def extrinsics_call_activity(
         filtered_data,
         interval,
     )
+    if not call_activity_data:
+        raise HTTPException(
+            status_code=204,
+            detail="No content found.",
+        )
 
     return {"callActivity": call_activity_data}
 
 
 @router.get(
-    "/transaction-rate",
-    # dependencies=[Depends(get_current_user)],
+    "/weekly-transaction-rate",
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
-            "description": "Transaction Rate",
+            "description": "Extrinsics transaction rate",
             "content": {"application/json": {"example": None}},
         },
         204: {
@@ -380,12 +364,15 @@ def weekly_transaction_rate(
         description="Public Key of the account to query",
     )
 ):
-    return EXTRINSICS_CONTEXT.weekly_transaction_rate(public_key=public_key)
+    data =  EXTRINSICS_CONTEXT.weekly_transaction_rate(public_key=public_key)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 
 @router.get(
     "/total-extrinsics",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Total Extrinsics",
@@ -408,12 +395,16 @@ def total_extrinsics(
         description="Public Key of the account to query",
     )
 ):
-    return EXTRINSICS_CONTEXT.total_extrinsics(public_key=public_key)
+    data =  EXTRINSICS_CONTEXT.total_extrinsics(public_key=public_key)
+    if data is None:
+        raise HTTPException(status_code=204, detail="No content found.")
+    return data
+    
 
 
 @router.get(
     "/recent-extrinsics",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Recent Extrinsics",
@@ -436,4 +427,7 @@ def recent_extrinsics(
         description="Public Key of the account to query",
     )
 ):
-    return EXTRINSICS_CONTEXT.recent_extrinsics(public_key=public_key)
+    data =  EXTRINSICS_CONTEXT.recent_extrinsics(public_key=public_key)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data

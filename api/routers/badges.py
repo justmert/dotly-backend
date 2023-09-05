@@ -5,6 +5,7 @@ from fastapi import (
     Path,
     HTTPException,
     Query,
+    Depends,
 )
 from ..api import (
     db,
@@ -31,7 +32,7 @@ from datetime import (
     datetime,
     timedelta,
 )
-from api.api import BADGES_CONTEXT, StatsType
+from api.api import BADGES_CONTEXT, StatsType, get_current_user
 import tools.log_config as log_config
 import os
 import logging
@@ -46,7 +47,7 @@ router = APIRouter()
 
 @router.get(
     "/check-badges",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Check Badges",

@@ -5,6 +5,7 @@ from fastapi import (
     Path,
     HTTPException,
     Query,
+    Depends
 )
 from ..api import (
     db,
@@ -12,7 +13,7 @@ from ..api import (
 
 from enum import Enum
 import pandas as pd
-from api.api import STATS_CONTEXT
+from api.api import STATS_CONTEXT, get_current_user
 import tools.log_config as log_config
 import os
 import logging
@@ -36,7 +37,7 @@ class TransferInterval(
 
 @router.get(
     "/transfer-relationship",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Transcation Relationship",
@@ -52,19 +53,22 @@ class TransferInterval(
         },
     },
 )
-def transaction_relationship(
+def transfer_relationship(
     public_key: str = Query(
         ...,
         title="Public Key",
         description="Public Key of the account to query",
     )
 ):
-    return STATS_CONTEXT.transfer_relationship(public_key=public_key)
+    data = STATS_CONTEXT.transfer_relationship(public_key=public_key)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 
 @router.get(
     "/recent-transfers",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Recent Transfers",
@@ -87,40 +91,15 @@ def recent_transfers(
         description="Public Key of the account to query",
     )
 ):
-    return STATS_CONTEXT.recent_transfers(public_key=public_key)
-
-
-# @router.get(
-#     "/top-transfers-by-count",
-#     # dependencies=[Depends(get_current_user)],
-#     responses={
-#         200: {
-#             "description": "Top Transfers",
-#             "content": {"application/json": {"example": None}},
-#         },
-#         204: {
-#             "description": "No content found.",
-#             "content": {"application/json": {"example": None}},
-#         },
-#         404: {
-#             "description": "Not found",
-#             "content": {"application/json": {"example": {"error": "Error description"}}},
-#         },
-#     },
-# )
-# def top_transfers_by_count(
-#     public_key: str = Query(
-#         ...,
-#         title="Public Key",
-#         description="Public Key of the account to query",
-#     )
-# ):
-#     return STATS_CONTEXT.top_transfers_by_count(public_key=public_key)
+    data =  STATS_CONTEXT.recent_transfers(public_key=public_key)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 
 @router.get(
     "/transfer-history",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Transfer History",
@@ -207,7 +186,7 @@ def transfer_history(
 
 @router.get(
     "/total-transfers",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Total Transfers",
@@ -223,39 +202,14 @@ def transfer_history(
         },
     },
 )
-def transaction_relationship(
+def total_transfers(
     public_key: str = Query(
         ...,
         title="Public Key",
         description="Public Key of the account to query",
     )
 ):
-    return STATS_CONTEXT.total_transfers(public_key=public_key)
-
-
-# @router.get(
-#     "/transfer-success-rate",
-#     # dependencies=[Depends(get_current_user)],
-#     responses={
-#         200: {
-#             "description": "Transfer Success Rate",
-#             "content": {"application/json": {"example": None}},
-#         },
-#         204: {
-#             "description": "No content found.",
-#             "content": {"application/json": {"example": None}},
-#         },
-#         404: {
-#             "description": "Not found",
-#             "content": {"application/json": {"example": {"error": "Error description"}}},
-#         },
-#     },
-# )
-# def transfer_success_rate(
-#     public_key: str = Query(
-#         ...,
-#         title="Public Key",
-#         description="Public Key of the account to query",
-#     )
-# ):
-#     return STATS_CONTEXT.transfer_success_rate(public_key=public_key)
+    data =  STATS_CONTEXT.total_transfers(public_key=public_key)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data

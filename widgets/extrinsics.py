@@ -39,7 +39,6 @@ logger = logging.getLogger(__name__)
 class ExtrinsicsType(Enum):
     EXTRINSICS = "EXTRINSICS"
     DISTRIBUTION = "DISTRIBUTION"
-    # TOP_INTERACTED = "TOP_INTERACTED"
     WEEKLY_TRANSACTION_RATE = "WEEKLY_TRANSACTION_RATE"
     TOTAL_EXTRINSICS = "TOTAL_EXTRINSICS"
     RECENT_EXTRINSICS = "RECENT_EXTRINSICS"
@@ -98,13 +97,41 @@ class Extrinsics:
             ExtrinsicsType.EXTRINSICS,
         )
 
-        # Extracting the latest 10 transfers
-        latest_10_extrinsics = []
-        if len(all_extrinsics) > 10:
-            latest_10_extrinsics = all_extrinsics[-10:][::-1]
-        else:
-            latest_10_extrinsics = all_extrinsics[::-1]
-        return latest_10_extrinsics
+        if all_extrinsics:
+            # Extracting the latest 10 transfers
+            latest_10_extrinsics = []
+            if len(all_extrinsics) > 10:
+                latest_10_extrinsics = all_extrinsics[-10:][::-1]
+            else:
+                latest_10_extrinsics = all_extrinsics[::-1]
+            return latest_10_extrinsics
+
+    def weekly_transaction_rate(
+        self,
+        public_key,
+    ):
+        return self._extrinsics(
+            public_key,
+            ExtrinsicsType.WEEKLY_TRANSACTION_RATE,
+        )
+
+    def extrinsics(
+        self,
+        public_key,
+    ):
+        return self._extrinsics(
+            public_key,
+            ExtrinsicsType.EXTRINSICS,
+        )
+
+    def distribution(
+        self,
+        public_key,
+    ):
+        return self._extrinsics(
+            public_key,
+            ExtrinsicsType.DISTRIBUTION,
+        )
 
     def _extrinsics(
         self,
@@ -120,13 +147,13 @@ class Extrinsics:
                 stats_type,
             ):
                 all_extrinsics = []
-                extrinsics_limit = 1000
+                extrinsics_limit = 10000
                 max_fetch = 3
 
                 # Fetch total count
                 total_count_query = """
                         query ($public_key: String!) {
-                        extrinsicsConnection(first: 0, orderBy: id_ASC, where: {signerPublicKey_eq: $public_key}) {
+                        extrinsicsConnection(orderBy: id_ASC, where: {signerPublicKey_eq: $public_key}) {
                             totalCount
                         }
                     }
@@ -149,13 +176,18 @@ class Extrinsics:
                         0,
                     )
                 )
-
+                
                 # Saving the top 5 senders and receivers to the cache
                 self._save_to_cache(
                     public_key,
                     ExtrinsicsType.TOTAL_EXTRINSICS,
-                    total_count,
+                    {
+                        "total_count": total_count,
+                    },
                 )
+
+                if total_count == 0:
+                    return self.cache[public_key].get(stats_type, None)
 
                 # Calculate starting offset
                 extrinsics_offset = max(
@@ -201,6 +233,7 @@ class Extrinsics:
                     pages_fetched += 1
                     extrinsics_offset += extrinsics_limit
 
+
                 self._save_to_cache(
                     public_key,
                     ExtrinsicsType.EXTRINSICS,
@@ -231,7 +264,9 @@ class Extrinsics:
                 self._save_to_cache(
                     public_key,
                     ExtrinsicsType.WEEKLY_TRANSACTION_RATE,
-                    last_week_transaction_count,
+                    {
+                        "last_week_transaction_count": last_week_transaction_count,
+                    },
                 )
 
                 pallet_call_data = {}
@@ -251,24 +286,6 @@ class Extrinsics:
                         pallet_call_data[pallet]["callNames"][call] = 0
 
                     pallet_call_data[pallet]["callNames"][call] += 1
-
-                main_pie_data = [
-                    {
-                        "name": pallet,
-                        "value": details["total"],
-                    }
-                    for pallet, details in pallet_call_data.items()
-                ]
-                sub_pie_data = {
-                    pallet: [
-                        {
-                            "name": call,
-                            "value": count,
-                        }
-                        for call, count in details["callNames"].items()
-                    ]
-                    for pallet, details in pallet_call_data.items()
-                }
 
                 # Getting the top interacted pallets with counts
                 top_pallets = sorted(
@@ -292,19 +309,6 @@ class Extrinsics:
                     )
                     top_calls_counts[pallet] = dict(sorted_calls)
 
-                # echarts_data = {
-                #     "mainPie": {
-                #         "legendData": list(pallet_call_data.keys()),
-                #         "seriesData": main_pie_data,
-                #     },
-                #     "subPie": sub_pie_data,
-                # }
-                # self._save_to_cache(
-                #     public_key,
-                #     ExtrinsicsType.DISTRIBUTION,
-                #     echarts_data,
-                # )
-
                 top_interacted = {
                     "pallets": top_pallets_counts,
                     "calls": top_calls_counts,
@@ -316,40 +320,5 @@ class Extrinsics:
                     top_interacted,
                 )
 
-            return self.cache[public_key][stats_type]
+            return self.cache[public_key].get(stats_type, None)
 
-    def weekly_transaction_rate(
-        self,
-        public_key,
-    ):
-        return self._extrinsics(
-            public_key,
-            ExtrinsicsType.WEEKLY_TRANSACTION_RATE,
-        )
-
-    def extrinsics(
-        self,
-        public_key,
-    ):
-        return self._extrinsics(
-            public_key,
-            ExtrinsicsType.EXTRINSICS,
-        )
-
-    def distribution(
-        self,
-        public_key,
-    ):
-        return self._extrinsics(
-            public_key,
-            ExtrinsicsType.DISTRIBUTION,
-        )
-
-    # def top_interacted(
-    #     self,
-    #     public_key,
-    # ):
-    #     return self._extrinsics(
-    #         public_key,
-    #         ExtrinsicsType.TOP_INTERACTED,
-    #     )

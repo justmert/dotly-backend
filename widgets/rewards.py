@@ -94,13 +94,14 @@ class Rewards:
             public_key,
             RewardsType.REWARDS,
         )
-        latest_10_rewards = []
-        if len(all_rewards) > 10:
-            latest_10_rewards = all_rewards[:10]
+        if all_rewards:
+            latest_10_rewards = []
+            if len(all_rewards) > 10:
+                latest_10_rewards = all_rewards[-10:][::-1]
 
-        else:
-            latest_10_rewards = all_rewards
-        return latest_10_rewards
+            else:
+                latest_10_rewards = all_rewards[::-1]
+            return latest_10_rewards
 
     def rewards(
         self,
@@ -134,13 +135,13 @@ class Rewards:
                 stats_type,
             ):
                 all_rewards = []
-                reward_limit = 1000
+                reward_limit = 10000
                 max_fetch = 3
 
                 # Fetch total count
                 total_count_query = """
                     query ($public_key: String!) {
-                    stakingRewardsConnection(first: 0, orderBy: id_ASC, where: {account: {id_eq: $public_key}}) {
+                    stakingRewardsConnection(orderBy: id_ASC, where: {account: {id_eq: $public_key}}) {
                         totalCount
                     }
                 }
@@ -163,6 +164,9 @@ class Rewards:
                         0,
                     )
                 )
+
+                if total_count == 0:
+                    return self.cache[public_key].get(stats_type,None)
 
                 # Calculate starting offset
                 reward_offset = max(
@@ -222,7 +226,6 @@ class Rewards:
                     all_rewards,
                 )
 
-                # Saving the top 5 senders and receivers to the cache
                 self._save_to_cache(
                     public_key,
                     RewardsType.TOTAL_REWARDS,
@@ -273,4 +276,4 @@ class Rewards:
                     data={"count": top_5_validators_by_count, "amount": top_5_validators_by_amount},
                 )
 
-            return self.cache[public_key][stats_type]
+            return self.cache[public_key].get(stats_type,None)

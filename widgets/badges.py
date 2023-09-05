@@ -41,7 +41,6 @@ base_dir = os.path.dirname(current_file_path)
 logger = logging.getLogger(__name__)
 
 
-
 class BadgesType(Enum):
     CHECK_BADGES = "CHECK_BADGES"
 
@@ -69,7 +68,7 @@ class Badges:
 
     def _check_call_master_300(self, public_key):
         tatal_extrinsics = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if tatal_extrinsics > 300:
+        if tatal_extrinsics['total_count'] > 300:
             return True
         else:
             return False
@@ -145,6 +144,7 @@ class Badges:
             data = OVERVIEW_CONTEXT.balance_history(public_key, address)
         except:
             return False
+        
         last_three_months_data = self._filter_last_three_months(data)
 
         min_balance = float("inf")
@@ -170,50 +170,66 @@ class Badges:
                     return True
         return False
 
+    def _safe_get_identity(self, public_key, address):
+        try:
+            identities = OVERVIEW_CONTEXT.identity(public_key, address)
+            if not identities:
+                return []
+            return identities
+        except:
+            return []
+
     def _check_identity_pioneer(self, public_key, address):
-        identities = OVERVIEW_CONTEXT.identity(public_key, address)
-        if identities:
-            for entry in identities:
-                if entry["identity"]:
-                    return True
+        identities = self._safe_get_identity(public_key, address)
+        for entry in identities:
+            if entry.get("identity"):
+                return True
         return False
 
     def _check_webmaster(self, public_key, address):
-        identities = OVERVIEW_CONTEXT.identity(public_key, address)
-        if identities:
-            for entry in identities:
-                if entry["web"]:
-                    return True
+        identities = self._safe_get_identity(public_key, address)
+        for entry in identities:
+            if entry.get("web"):
+                return True
         return False
 
     def _check_tweetheart(self, public_key, address):
-        identities = OVERVIEW_CONTEXT.identity(public_key, address)
-        if identities:
-            for entry in identities:
-                if entry["twitter"]:
-                    return True
+        identities = self._safe_get_identity(public_key, address)
+        for entry in identities:
+            if entry.get("twitter"):
+                return True
         return False
 
     def _check_judgement_joker(self, public_key, address):
-        identities = OVERVIEW_CONTEXT.identity(public_key, address)
-        if identities:
-            for entry in identities:
-                if entry.get("judgements", None):
-                    return True
+        identities = self._safe_get_identity(public_key, address)
+        for entry in identities:
+            if entry.get("judgements"):
+                return True
         return False
 
+    def _safe_get_total_transfers(self, public_key):
+        try:
+            return STATS_CONTEXT.total_transfers(public_key)
+        except:
+            return None
+
     def _check_chatterbox_chieftain(self, public_key):
-        data = STATS_CONTEXT.total_transfers(public_key)
-        if data["sent"] > 50:
+        data = self._safe_get_total_transfers(public_key)
+        if data and data.get("sent", 0) > 50:
             return True
         return False
 
-    def _check_consistent_conductor(self, public_key):
+    def _safe_get_extrinsics_activity(self, public_key, interval):
         try:
-            data = extrinsics.extrinsics_activity(public_key, extrinsics.ActivityInterval.MONTH)
+            return extrinsics.extrinsics_activity(public_key, interval)
         except:
+            return None
+
+    def _check_consistent_conductor(self, public_key):
+        data = self._safe_get_extrinsics_activity(public_key, extrinsics.ActivityInterval.MONTH)
+        if not data:
             return False
-        activity_data = data["series"][0]["data"]
+        activity_data = data.get("series", [{}])[0].get("data", [])
 
         for i in range(len(activity_data) - 2):
             if activity_data[i] > 0 and activity_data[i + 1] > 0 and activity_data[i + 2] > 0:
@@ -222,82 +238,66 @@ class Badges:
 
     def _check_consistent_creator(self, public_key):
         THRESHOLD = 5
-        try:
-            data = extrinsics.extrinsics_activity(public_key, extrinsics.ActivityInterval.MONTH)
-        except:
+        data = self._safe_get_extrinsics_activity(public_key, extrinsics.ActivityInterval.MONTH)
+        if not data:
             return False
-        last_three_months = data["series"][0]["data"][-3:]
+        last_three_months = data.get("series", [{}])[0].get("data", [])[-3:]
 
         if all(value >= THRESHOLD for value in last_three_months):
             return True
         return False
 
+    def _safe_get_data(self, func, public_key, key):
+        try:
+            data = func(public_key)
+        except:
+            return None
+        return data.get(key, None)
+
     def _check_magnet_mogul(self, public_key):
-        data = STATS_CONTEXT.total_transfers(public_key)
-        if data["received"] > 100:
-            return True
-        return False
+        data_received = self._safe_get_data(STATS_CONTEXT.total_transfers, public_key, "received")
+        return data_received is not None and data_received > 100
 
     def _check_transfer_titan(self, public_key):
-        data = STATS_CONTEXT.total_transfers(public_key)
-        total_transactions = data["received"] + data["sent"]
-        if total_transactions > 150:
-            return True
-        return False
+        data = self._safe_get_data(STATS_CONTEXT.total_transfers, public_key, None)
+        total_transactions = (data.get("received", 0) if data else 0) + (data.get("sent", 0) if data else 0)
+        return total_transactions > 150
 
     def _check_extrinsics_explorer(self, public_key):
-        total = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if total > 10:
-            return True
-        return False
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        return total_count is not None and total_count > 10
 
     def _check_extrinsics_enthusiast(self, public_key):
-        total = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if total > 50:
-            return True
-        return False
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        return total_count is not None and total_count > 50
 
     def _check_extrinsics_expert(self, public_key):
-        total = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if total > 100:
-            return True
-        return False
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        return total_count is not None and total_count > 100
 
     def _check_extrinsics_emperor(self, public_key):
-        total = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if total > 200:
-            return True
-        return False
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        return total_count is not None and total_count > 200
 
     def _check_golden_gatherer(self, public_key):
-        total = REWARDS_CONTEXT.total_rewards(public_key)["total_count"]
-        if total > 100:
-            return True
-        return False
+        total_count = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_count')
+        return total_count is not None and total_count > 100
 
     def _check_thousand_thrills(self, public_key):
-        total = REWARDS_CONTEXT.total_rewards(public_key)["total_count"]
-        if total > 1000:
-            return True
-        return False
+        total_count = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_count')
+        return total_count is not None and total_count > 1000
 
     def _check_elite_earner(self, public_key):
-        total_amount = REWARDS_CONTEXT.total_rewards(public_key)["total_amount"]
-        if total_amount > 10000:
-            return True
-        return False
+        total_amount = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_amount')
+        return total_amount is not None and total_amount > 10000
 
     def _check_one_tap_wonder(self, public_key):
-        total_extrinsics = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if total_extrinsics == 1:
-            return True
-        return False
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        return total_count is not None and total_count > 0
 
     def _check_lavish_legend(self, public_key):
-        total_amount = REWARDS_CONTEXT.total_rewards(public_key)["total_amount"]
-        if total_amount > 1000:
-            return True
-        return False
+        total_amount = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_amount')
+        return total_amount is not None and total_amount > 1000
 
     def check_badges(self, public_key):
         address = encode(public_key)
@@ -583,9 +583,11 @@ class Badges:
         ]
 
         for badge in badges:
-            print(badge["name"])
-            badge["success"] = badge["function"](**badge["args"])
-            print("completed")
+            try:
+                badge["success"] = badge["function"](**badge["args"])
+            except Exception as e:
+                logger.error(f"Error while checking badge {badge['name']}: {e}")
+                badge["success"] = False
 
         # return without args and function
         user_badges = [
@@ -596,5 +598,4 @@ class Badges:
             }
             for badge in badges
         ]
-        print(user_badges)
         return user_badges

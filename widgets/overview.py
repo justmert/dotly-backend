@@ -23,10 +23,6 @@ from datetime import (
 from dateutil.relativedelta import (
     relativedelta,
 )
-from tools.helpers import dot_string_to_float
-
-from substrateinterface import SubstrateInterface, Keypair
-from substrateinterface.utils.ss58 import ss58_encode
 import threading
 import tools.log_config as log_config
 import os
@@ -99,9 +95,7 @@ class Overview:
                 OverviewType.ACCOUNT,
                 account["data"]["account"],
             )
-
-            # --------------------------------------------
-        return self.cache[public_key][OverviewType.ACCOUNT]
+        return self.cache[public_key].get(OverviewType.ACCOUNT, None)
 
     def balance_distribution(
         self,
@@ -124,7 +118,7 @@ class Overview:
                 balance_list["data"],
             )
 
-        return self.cache[public_key][OverviewType.BALANCE_DISTRIBUTION]
+        return self.cache[public_key].get(OverviewType.BALANCE_DISTRIBUTION, None)
 
     def identity(
         self,
@@ -149,7 +143,7 @@ class Overview:
                 multi_chain_identity["data"],
             )
 
-        return self.cache[public_key][OverviewType.MULTI_CHAIN_IDENTITY]
+        return self.cache[public_key].get(OverviewType.MULTI_CHAIN_IDENTITY, None)
 
     def balance_stats(self, public_key, address):
         if not self._check_cache(
@@ -170,7 +164,7 @@ class Overview:
                 balance_stats["data"],
             )
 
-        return self.cache[public_key][OverviewType.BALANCE_STATS]
+        return self.cache[public_key].get(OverviewType.BALANCE_STATS, None)
 
     def balance_history(self, public_key, address):
         if not self._check_cache(
@@ -196,4 +190,4 @@ class Overview:
                 balance_stats["data"],
             )
 
-        return self.cache[public_key][OverviewType.BALANCE_HISTORY]
+        return self.cache[public_key].get(OverviewType.BALANCE_HISTORY,None)

@@ -5,6 +5,7 @@ from fastapi import (
     Path,
     HTTPException,
     Query,
+    Depends
 )
 from ..api import (
     db,
@@ -12,7 +13,7 @@ from ..api import (
 
 from enum import Enum
 import pandas as pd
-from api.api import OVERVIEW_CONTEXT, StatsType
+from api.api import OVERVIEW_CONTEXT, StatsType, get_current_user
 from tools.helpers import encode
 import tools.log_config as log_config
 import os
@@ -27,7 +28,7 @@ router = APIRouter()
 
 @router.get(
     "/account",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Account Info",
@@ -56,12 +57,17 @@ def account(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    return OVERVIEW_CONTEXT.account(public_key=public_key, address=address)
+    data =  OVERVIEW_CONTEXT.account(public_key=public_key, address=address)
+    if data is None:
+        raise HTTPException(status_code=204, detail="No content found.")
+    
+    return data
+
 
 
 @router.get(
     "/balance-distribution",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Balance Distribution",
@@ -90,12 +96,14 @@ def balance_distribution(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    return OVERVIEW_CONTEXT.balance_distribution(public_key=public_key, address=address)
-
+    data =  OVERVIEW_CONTEXT.balance_distribution(public_key=public_key, address=address)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 @router.get(
     "/identity",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Balance Distribution",
@@ -124,12 +132,15 @@ def identity(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    return OVERVIEW_CONTEXT.identity(public_key=public_key, address=address)
+    data =  OVERVIEW_CONTEXT.identity(public_key=public_key, address=address)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 
 @router.get(
     "/balance-stats",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Balance Stats",
@@ -158,12 +169,15 @@ def balance_stats(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    return OVERVIEW_CONTEXT.balance_stats(public_key=public_key, address=address)
+    data =  OVERVIEW_CONTEXT.balance_stats(public_key=public_key, address=address)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 
 @router.get(
     "/balance-history",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Balance History",
@@ -192,4 +206,8 @@ def balance_history(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    return OVERVIEW_CONTEXT.balance_history(public_key=public_key, address=address)
+    data =  OVERVIEW_CONTEXT.balance_history(public_key=public_key, address=address)
+    if data is None:
+            raise HTTPException(status_code=204, detail="No content found.")
+    return data
+

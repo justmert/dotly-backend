@@ -130,13 +130,13 @@ class Stats:
                 stats_type,
             ):
                 all_transfers = []
-                transfer_limit = 1000
+                transfer_limit = 10000
                 max_fetch = 3
 
                 # Fetch total count
                 total_to_count_query = """
                     query ($public_key: String!) {
-                        transfersConnection(first: 0, orderBy: id_ASC, where: {account: {id_eq: $public_key}, direction_eq: To}) {
+                        transfersConnection(orderBy: id_ASC, where: {account: {id_eq: $public_key}, direction_eq: To}) {
                             totalCount
                         }
                     }            
@@ -161,7 +161,7 @@ class Stats:
                 )
                 total_from_count_query = """
                     query ($public_key: String!) {
-                        transfersConnection(first: 0, orderBy: id_ASC, where: {account: {id_eq: $public_key}, direction_eq: From}) {
+                        transfersConnection(orderBy: id_ASC, where: {account: {id_eq: $public_key}, direction_eq: From}) {
                             totalCount
                         }
                     }            
@@ -197,13 +197,15 @@ class Stats:
                         "sent": total_from_count,
                     },
                 )
+                if total_count == 0:
+                    return self.cache[public_key][stats_type]
+
 
                 # Calculate starting offset
                 transfer_offset = max(
                     0,
                     total_count - (max_fetch * transfer_limit),
                 )
-
                 pages_fetched = 0
                 while pages_fetched < max_fetch:
                     variables = {
@@ -249,13 +251,13 @@ class Stats:
 
                     pages_fetched += 1
                     transfer_offset += transfer_limit
-
+                
                 # Extracting the latest 10 transfers
                 latest_10_transfers = []
                 if len(all_transfers) > 10:
-                    latest_10_transfers = all_transfers[:10]
+                    latest_10_transfers = all_transfers[-10:][::-1]
                 else:
-                    latest_10_transfers = all_transfers
+                    latest_10_transfers = all_transfers[::-1]
 
                 # Saving the latest 10 transfers to the cache
                 self._save_to_cache(
@@ -300,16 +302,6 @@ class Stats:
                     }
                     for public_id, count in receiver_counts.most_common(10)
                 ]
-
-                # Saving the top 5 senders and receivers to the cache
-                # self._save_to_cache(
-                #     public_key,
-                #     StatsType.TOP_TRANSFERS_BY_COUNT,
-                #     {
-                #         "senders": top_5_senders_by_count,
-                #         "receivers": top_5_receivers_by_count,
-                #     },
-                # )
 
                 # -----------------------------------------------------------
                 # Dictionaries to hold total amount for each sender and receiver
@@ -395,4 +387,4 @@ class Stats:
                     },
                 )
 
-            return self.cache[public_key][stats_type]
+            return self.cache[public_key].get(stats_type,None)

@@ -5,6 +5,7 @@ from fastapi import (
     Path,
     HTTPException,
     Query,
+    Depends
 )
 from ..api import (
     db,
@@ -14,7 +15,7 @@ from enum import Enum
 import pandas as pd
 from datetime import date
 from datetime import datetime
-from api.api import REWARDS_CONTEXT, StatsType
+from api.api import REWARDS_CONTEXT, StatsType, get_current_user
 import tools.log_config as log_config
 import os
 import logging
@@ -38,7 +39,7 @@ class HistoryInterval(
 
 @router.get(
     "/total-rewards",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Total Rewards",
@@ -61,12 +62,14 @@ def total_rewards(
         description="Public Key of the account to query",
     )
 ):
-    return REWARDS_CONTEXT.total_rewards(public_key=public_key)
-
+    data =  REWARDS_CONTEXT.total_rewards(public_key=public_key)
+    if data is None:
+        raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 @router.get(
     "/recent-rewards",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Recent Rewards",
@@ -89,12 +92,15 @@ def recent_rewards(
         description="Public Key of the account to query",
     )
 ):
-    return REWARDS_CONTEXT.recent_rewards(public_key=public_key)
+    data =  REWARDS_CONTEXT.recent_rewards(public_key=public_key)
+    if data is None:
+        raise HTTPException(status_code=204, detail="No content found.")
+    return data
 
 
 @router.get(
     "/reward-history",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Reward History",
@@ -180,7 +186,7 @@ def reward_history(
 
 @router.get(
     "/reward-relationship",
-    # dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(get_current_user)],
     responses={
         200: {
             "description": "Reward Relationship",
@@ -203,4 +209,7 @@ def reward_relationship(
         description="Public Key of the account to query",
     )
 ):
-    return REWARDS_CONTEXT.reward_relationship(public_key=public_key)
+    data =  REWARDS_CONTEXT.reward_relationship(public_key=public_key)
+    if data is None:
+        raise HTTPException(status_code=204, detail="No content found.")
+    return data

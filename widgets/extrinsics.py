@@ -176,7 +176,7 @@ class Extrinsics:
                         0,
                     )
                 )
-                
+
                 # Saving the top 5 senders and receivers to the cache
                 self._save_to_cache(
                     public_key,
@@ -232,7 +232,6 @@ class Extrinsics:
 
                     pages_fetched += 1
                     extrinsics_offset += extrinsics_limit
-
 
                 self._save_to_cache(
                     public_key,
@@ -321,4 +320,3 @@ class Extrinsics:
                 )
 
             return self.cache[public_key].get(stats_type, None)
-

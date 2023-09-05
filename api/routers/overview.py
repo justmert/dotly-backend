@@ -1,12 +1,7 @@
 from fastapi import (
     APIRouter,
 )
-from fastapi import (
-    Path,
-    HTTPException,
-    Query,
-    Depends
-)
+from fastapi import Path, HTTPException, Query, Depends
 from ..api import (
     db,
 )
@@ -57,12 +52,11 @@ def account(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    data =  OVERVIEW_CONTEXT.account(public_key=public_key, address=address)
+    data = OVERVIEW_CONTEXT.account(public_key=public_key, address=address)
     if data is None:
         raise HTTPException(status_code=204, detail="No content found.")
-    
-    return data
 
+    return data
 
 
 @router.get(
@@ -96,10 +90,11 @@ def balance_distribution(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    data =  OVERVIEW_CONTEXT.balance_distribution(public_key=public_key, address=address)
+    data = OVERVIEW_CONTEXT.balance_distribution(public_key=public_key, address=address)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
+
 
 @router.get(
     "/identity",
@@ -132,9 +127,9 @@ def identity(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    data =  OVERVIEW_CONTEXT.identity(public_key=public_key, address=address)
+    data = OVERVIEW_CONTEXT.identity(public_key=public_key, address=address)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
 
 
@@ -169,9 +164,9 @@ def balance_stats(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    data =  OVERVIEW_CONTEXT.balance_stats(public_key=public_key, address=address)
+    data = OVERVIEW_CONTEXT.balance_stats(public_key=public_key, address=address)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
 
 
@@ -206,8 +201,7 @@ def balance_history(
     except:
         raise HTTPException(status_code=404, detail="Invalid public key which cannot be encoded to address")
 
-    data =  OVERVIEW_CONTEXT.balance_history(public_key=public_key, address=address)
+    data = OVERVIEW_CONTEXT.balance_history(public_key=public_key, address=address)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
-

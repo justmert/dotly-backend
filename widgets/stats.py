@@ -200,7 +200,6 @@ class Stats:
                 if total_count == 0:
                     return self.cache[public_key][stats_type]
 
-
                 # Calculate starting offset
                 transfer_offset = max(
                     0,
@@ -251,7 +250,7 @@ class Stats:
 
                     pages_fetched += 1
                     transfer_offset += transfer_limit
-                
+
                 # Extracting the latest 10 transfers
                 latest_10_transfers = []
                 if len(all_transfers) > 10:
@@ -387,4 +386,4 @@ class Stats:
                     },
                 )
 
-            return self.cache[public_key].get(stats_type,None)
+            return self.cache[public_key].get(stats_type, None)

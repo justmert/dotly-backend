@@ -1,12 +1,7 @@
 from fastapi import (
     APIRouter,
 )
-from fastapi import (
-    Path,
-    HTTPException,
-    Query,
-    Depends
-)
+from fastapi import Path, HTTPException, Query, Depends
 from ..api import (
     db,
 )
@@ -62,10 +57,11 @@ def total_rewards(
         description="Public Key of the account to query",
     )
 ):
-    data =  REWARDS_CONTEXT.total_rewards(public_key=public_key)
+    data = REWARDS_CONTEXT.total_rewards(public_key=public_key)
     if data is None:
         raise HTTPException(status_code=204, detail="No content found.")
     return data
+
 
 @router.get(
     "/recent-rewards",
@@ -92,7 +88,7 @@ def recent_rewards(
         description="Public Key of the account to query",
     )
 ):
-    data =  REWARDS_CONTEXT.recent_rewards(public_key=public_key)
+    data = REWARDS_CONTEXT.recent_rewards(public_key=public_key)
     if data is None:
         raise HTTPException(status_code=204, detail="No content found.")
     return data
@@ -209,7 +205,7 @@ def reward_relationship(
         description="Public Key of the account to query",
     )
 ):
-    data =  REWARDS_CONTEXT.reward_relationship(public_key=public_key)
+    data = REWARDS_CONTEXT.reward_relationship(public_key=public_key)
     if data is None:
         raise HTTPException(status_code=204, detail="No content found.")
     return data

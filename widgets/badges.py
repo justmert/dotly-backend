@@ -68,7 +68,7 @@ class Badges:
 
     def _check_call_master_300(self, public_key):
         tatal_extrinsics = EXTRINSICS_CONTEXT.total_extrinsics(public_key)
-        if tatal_extrinsics['total_count'] > 300:
+        if tatal_extrinsics["total_count"] > 300:
             return True
         else:
             return False
@@ -144,7 +144,7 @@ class Badges:
             data = OVERVIEW_CONTEXT.balance_history(public_key, address)
         except:
             return False
-        
+
         last_three_months_data = self._filter_last_three_months(data)
 
         min_balance = float("inf")
@@ -264,39 +264,39 @@ class Badges:
         return total_transactions > 150
 
     def _check_extrinsics_explorer(self, public_key):
-        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, "total_count")
         return total_count is not None and total_count > 10
 
     def _check_extrinsics_enthusiast(self, public_key):
-        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, "total_count")
         return total_count is not None and total_count > 50
 
     def _check_extrinsics_expert(self, public_key):
-        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, "total_count")
         return total_count is not None and total_count > 100
 
     def _check_extrinsics_emperor(self, public_key):
-        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, "total_count")
         return total_count is not None and total_count > 200
 
     def _check_golden_gatherer(self, public_key):
-        total_count = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_count')
+        total_count = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, "total_count")
         return total_count is not None and total_count > 100
 
     def _check_thousand_thrills(self, public_key):
-        total_count = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_count')
+        total_count = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, "total_count")
         return total_count is not None and total_count > 1000
 
     def _check_elite_earner(self, public_key):
-        total_amount = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_amount')
+        total_amount = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, "total_amount")
         return total_amount is not None and total_amount > 10000
 
     def _check_one_tap_wonder(self, public_key):
-        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, 'total_count')
+        total_count = self._safe_get_data(EXTRINSICS_CONTEXT.total_extrinsics, public_key, "total_count")
         return total_count is not None and total_count > 0
 
     def _check_lavish_legend(self, public_key):
-        total_amount = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, 'total_amount')
+        total_amount = self._safe_get_data(REWARDS_CONTEXT.total_rewards, public_key, "total_amount")
         return total_amount is not None and total_amount > 1000
 
     def check_badges(self, public_key):

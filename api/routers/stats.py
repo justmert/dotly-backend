@@ -1,12 +1,7 @@
 from fastapi import (
     APIRouter,
 )
-from fastapi import (
-    Path,
-    HTTPException,
-    Query,
-    Depends
-)
+from fastapi import Path, HTTPException, Query, Depends
 from ..api import (
     db,
 )
@@ -62,7 +57,7 @@ def transfer_relationship(
 ):
     data = STATS_CONTEXT.transfer_relationship(public_key=public_key)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
 
 
@@ -91,9 +86,9 @@ def recent_transfers(
         description="Public Key of the account to query",
     )
 ):
-    data =  STATS_CONTEXT.recent_transfers(public_key=public_key)
+    data = STATS_CONTEXT.recent_transfers(public_key=public_key)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
 
 
@@ -209,7 +204,7 @@ def total_transfers(
         description="Public Key of the account to query",
     )
 ):
-    data =  STATS_CONTEXT.total_transfers(public_key=public_key)
+    data = STATS_CONTEXT.total_transfers(public_key=public_key)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data

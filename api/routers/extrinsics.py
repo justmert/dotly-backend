@@ -1,12 +1,7 @@
 from fastapi import (
     APIRouter,
 )
-from fastapi import (
-    Path,
-    HTTPException,
-    Query,
-    Depends
-)
+from fastapi import Path, HTTPException, Query, Depends
 from ..api import (
     db,
 )
@@ -64,8 +59,6 @@ class CallActivityInterval(
     WEEK = "WEEK"
     MONTH = "MONTH"
     YEAR = "YEAR"
-
-
 
 
 @router.get(
@@ -179,10 +172,11 @@ def extrinsics_distribution(
         description="Public Key of the account to query",
     )
 ):
-    data =  EXTRINSICS_CONTEXT.distribution(public_key)
+    data = EXTRINSICS_CONTEXT.distribution(public_key)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
+
 
 @router.get(
     "/success-rate",
@@ -260,6 +254,7 @@ def extrinsics_success_rate(
 
     return echarts_data
 
+
 @router.get(
     "/call-activity",
     # dependencies=[Depends(get_current_user)],
@@ -284,7 +279,6 @@ def extrinsics_call_activity(
     interval: CallActivityInterval = Query(..., title="Interval", description="Interval to group the data"),
 ):
     data = EXTRINSICS_CONTEXT.extrinsics(public_key)
-    print("No contenwwt found.")
 
     if not data:
         raise HTTPException(
@@ -294,7 +288,6 @@ def extrinsics_call_activity(
     # Filtering data by the specified call name
     filtered_data = [entry for entry in data if entry["mainCall"]["callName"] == call_name]
     if len(filtered_data) == 0:
-        print("No content found.")
         raise HTTPException(
             status_code=204,
             detail=f"No content found for call name: {call_name}",
@@ -302,7 +295,7 @@ def extrinsics_call_activity(
     df = pd.DataFrame(data)
     df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.date
     df.set_index(pd.DatetimeIndex(df["timestamp"]), inplace=True)
-    
+
     # Determine resampling frequency
     freq_map = {
         CallActivityInterval.DAY: "D",
@@ -363,9 +356,9 @@ def weekly_transaction_rate(
         description="Public Key of the account to query",
     )
 ):
-    data =  EXTRINSICS_CONTEXT.weekly_transaction_rate(public_key=public_key)
+    data = EXTRINSICS_CONTEXT.weekly_transaction_rate(public_key=public_key)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data
 
 
@@ -394,11 +387,10 @@ def total_extrinsics(
         description="Public Key of the account to query",
     )
 ):
-    data =  EXTRINSICS_CONTEXT.total_extrinsics(public_key=public_key)
+    data = EXTRINSICS_CONTEXT.total_extrinsics(public_key=public_key)
     if data is None:
         raise HTTPException(status_code=204, detail="No content found.")
     return data
-    
 
 
 @router.get(
@@ -426,7 +418,7 @@ def recent_extrinsics(
         description="Public Key of the account to query",
     )
 ):
-    data =  EXTRINSICS_CONTEXT.recent_extrinsics(public_key=public_key)
+    data = EXTRINSICS_CONTEXT.recent_extrinsics(public_key=public_key)
     if data is None:
-            raise HTTPException(status_code=204, detail="No content found.")
+        raise HTTPException(status_code=204, detail="No content found.")
     return data

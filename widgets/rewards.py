@@ -166,7 +166,7 @@ class Rewards:
                 )
 
                 if total_count == 0:
-                    return self.cache[public_key].get(stats_type,None)
+                    return self.cache[public_key].get(stats_type, None)
 
                 # Calculate starting offset
                 reward_offset = max(
@@ -276,4 +276,4 @@ class Rewards:
                     data={"count": top_5_validators_by_count, "amount": top_5_validators_by_amount},
                 )
 
-            return self.cache[public_key].get(stats_type,None)
+            return self.cache[public_key].get(stats_type, None)

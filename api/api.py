@@ -243,6 +243,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class AdminIn(BaseModel):
     admin_username: str = Field(
         ...,

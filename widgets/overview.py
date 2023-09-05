@@ -190,4 +190,4 @@ class Overview:
                 balance_stats["data"],
             )
 
-        return self.cache[public_key].get(OverviewType.BALANCE_HISTORY,None)
+        return self.cache[public_key].get(OverviewType.BALANCE_HISTORY, None)

@@ -1,5 +1,4 @@
 # Dotly Backend
----
 
 ### Overview
 This is the backend of the Dotly project. It is written in Python and uses FastAPI framework. It uses Firebase for authentication and database. It uses Subscan API for Polkadot/Kusama blockchain data.

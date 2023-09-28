@@ -46,6 +46,14 @@ If you want to **run the backend locally**, you need to create a Firebase projec
 
 Your app will be running on http://localhost:8000 and you can see the docs on http://localhost:8000/docs
 
+### Get Bearer Token
+- Visit ```http://localhost:8000/docs```after you run server.
+- Create user to get token
+![Screenshot 2023-09-28 at 17 38 47](https://github.com/justmert/dotly-backend/assets/37740842/413e6652-c33a-4367-bc4d-0294f45865e0)
+- Use created user to get bearer token
+![Screenshot 2023-09-28 at 17 40 04](https://github.com/justmert/dotly-backend/assets/37740842/89227890-8e3a-4a29-9dcc-fc90fc8fc026)
+- Save this bearer token, we will use at frontend (If you want to use backend on http://localhost:8000/docs use this bearer token as authorization, click authorize button right top of the page and paste this bearer token, by this way you will be authenticated=
+
 ### How to Run Tests
 Run this command from root, this will run all tests in tests folder
 ```pytest tests/*```

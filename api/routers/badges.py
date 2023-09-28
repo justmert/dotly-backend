@@ -73,3 +73,4 @@ def check_badges(
     data = BADGES_CONTEXT.check_badges(public_key=public_key)
     if data is None:
         raise HTTPException(status_code=404, detail="Check for public key!")
+    return data

@@ -254,7 +254,7 @@ class Extrinsics:
                 now = datetime.now()
 
                 # Filter for the transactions within the last week
-                one_week_ago = now - timedelta(days=120)
+                one_week_ago = now - timedelta(days=7)
                 last_week_transactions = df[df["timestamp"] > one_week_ago]
 
                 # Get the transaction count for the last week

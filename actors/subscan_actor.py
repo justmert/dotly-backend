@@ -97,8 +97,13 @@ class SubscanActor:
                     "retry-after",
                     None,
                 )
-                self.rate_limit_wait(retry_after)
-                continue
+                try:
+                    if retry_after is not None:
+                        retry_after = int(retry_after)
+                        self.rate_limit_wait(retry_after)
+                        continue
+                except:
+                    pass
 
             elif response.status_code in [
                 500,
